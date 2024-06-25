@@ -13,7 +13,7 @@
 
 #define BUTTON_PIN_BITMASK 0x0010 // GPIOs 4    io4 按钮
 
-BleKeyboard bleKeyboard("AC228", "OCRC", 50); // 蓝牙
+BleKeyboard bleKeyboard("AC1008M", "OCRC", 50); // 蓝牙
 
 uint8_t xunhuanh = 0, xunhuanl = 0, bt_icon = 0, sleeptime = 30, espthem = 4, yan = 0, otatishi = 1;
 uint16_t xunhuan = 0;
@@ -399,7 +399,7 @@ void loop()
                                     break;
                                 }
                                 jsonBuffer1["chipid"] = ESP.getEfuseMac() & 0X0000FFFFFFFFFFFF;
-                                jsonBuffer1["name"] = "AC228";                     // 设备名称
+                                jsonBuffer1["name"] = "AC1008M";                     // 设备名称
                                 jsonBuffer1["software"] = "v3.0";                  // 固件版本
                                 jsonBuffer1["hardware"] = "v3.1";                  // 硬件版本
                                 jsonBuffer1["bat_cir"] = xunhuan;                  // 循环次数
@@ -523,9 +523,9 @@ void loop()
                                 Serial.println(EEPROM.read(2));
 
                                 unsigned long currentTime2;
-                                currentTime2 = millis(); // 程序执行到此时间
+                                currentTime2 = millis(); // 程序执行到此时间  
                                 delay(10);
-                                while (millis() - currentTime2 < 1000) // while延时
+                                while (millis() - currentTime2 < 1000) // while延时 
                                 {
                                     if (digitalRead(4) == 0)
                                     {
