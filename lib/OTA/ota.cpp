@@ -6,7 +6,6 @@
 // #include <esp_task_wdt.h>
 // int cur, total;
 int a, b;
-int ret;
 // 固件链接，在巴法云控制台复制、粘贴到这里即可
 String upUrl = "http://bin.bemfa.com/b/3BcNjdmOTA1MGU4ZDY3YzhjODU0ZTc0NGU3ZjFhZDNjZWE=AABCL6208.bin";
 
@@ -59,14 +58,14 @@ void updateBin()
         Serial.print(".");
     }
     vTaskDelay(1000);
-    WiFiClient UpdateClient;                // 获取远程更新
+    WiFiClient UpdateClient; // 获取远程更新
     vTaskDelay(1000);
     httpUpdate.onStart(update_started);     // 当升级开始时
     httpUpdate.onEnd(update_finished);      // 当升级结束时
     httpUpdate.onProgress(update_progress); // 当升级中
     httpUpdate.onError(update_error);       // 当升级失败时
 
-    ret = httpUpdate.update(UpdateClient, upUrl);
+    t_httpUpdate_return ret = httpUpdate.update(UpdateClient, upUrl);
     switch (ret)
     {
     case HTTP_UPDATE_FAILED: // 当升级失败

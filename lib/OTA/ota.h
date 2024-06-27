@@ -5,7 +5,7 @@
 #define wifi_password "12345678" // WIFI密码
 
 extern int a, b;
-extern int ret;
+
 
 void updateBin(); // wifiManager配网      httpUpdate OTA更新
 

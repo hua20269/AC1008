@@ -5,7 +5,7 @@ void eeprominit()
     EEPROM.begin(EEPROM_SIZE);
 }
 
-void battime(uint16_t bat_per)
+void eebattime(uint16_t bat_per)
 {
     uint16_t xh;
     if (bat_per >= 80)

@@ -49,7 +49,7 @@ eeprom可用地址为0~4096
 
 void eeprominit(); // 初始化存储
 
-void battime(uint16_t bat_per); // 判断循环次数  eeprom: 2   容量是否高于80    容量是否低于20
+void eebattime(uint16_t bat_per); // 判断循环次数  eeprom: 2   容量是否高于80    容量是否低于20
 
 void eepromLcdSleep(uint8_t data); // 写入屏幕自动息屏时间   eeprom: 5
 
