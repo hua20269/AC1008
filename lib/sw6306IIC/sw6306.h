@@ -59,4 +59,6 @@ uint8_t Small_A_State(); // 小电流状态   0: 关    1: 开
 
 // void NTCLimit();//设置NTC温度上限保护60℃ 改为 65℃     温度每上升1度，电压下降800mv
 
+void L_State(); // 控制L口输入功率30w，关闭输出
+
 #endif

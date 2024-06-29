@@ -135,7 +135,7 @@ uint16_t ADC_Data()
     Serial.println(r_buffer[1], HEX);
     r_buffer[0] = I2C_Read(SW6306_address, 0x32); // 读取ADC数据高4位
     Serial.println(r_buffer[0], HEX);
-    ADCvalue = (r_buffer[0] << 8) + r_buffer[1];                                       // adc数据的合并
+    ADCvalue = (r_buffer[0] << 8) + r_buffer[1]; // adc数据的合并
 
     // ADCvalue = (I2C_Read(SW6306_address, 0x31) + I2C_Read(SW6306_address, 0x32) << 8); // adc数据的合并   低 8 位必须先读
 
@@ -251,16 +251,15 @@ float NTC_Temp()
 }
 
 /**
- * @brief  电池容量
- * @param  REG0x88: 库仑计当前容量低8位   Bit: 7-0 库仑计当前容量低8位    0.07964mWh/step
- * @param  REG0x89: 库仑计当前容量中8位   Bit: 7-0 库仑计当前容量低8位    0.07964mWh/step
- * @param  REG0x8A: 库仑计当前容量高8位   Bit: 7-0 库仑计当前容量低8位    0.07964mWh/step
+ * @brief  电池最大容量
+ * @param  REG0x86: 库仑计最大容量低 8 位   bit: 7-0   库仑计最大容量低 8 位   326.2236mWh/step
+ * @param  REG0x87: 库仑计最大容量高 4 位   bit: 3-0   库仑计最大容量高 4 位   326.2236mWh/step  
  *
- * @return float  电池容量
+ * @return float  电池最大容量
  */
 float Battery_Volume()
 {
-    float battery_volume = (I2C_Read(SW6306_address, 0x88) + I2C_Read(SW6306_address, 0x89) << 8 + I2C_Read(SW6306_address, 0x8A) << 16) * 0.00007964;
+    float battery_volume = (I2C_Read(SW6306_address, 0x86) + I2C_Read(SW6306_address, 0x87) << 8 ) * 0.3262236;
     Serial.print("--Battery_Volume: ");
     Serial.println(battery_volume);
     return battery_volume;
@@ -299,7 +298,7 @@ uint8_t SYS_State()
  * @param  bit: 2    A2口在线状态指示   0: 不在线  1: 在线
  * @param  bit: 1    C1口在线状态指示   0: 不在线  1: 在线
  * @param  bit: 0    C2口在线状态指示   0: 不在线  1: 在线
- * @return uint8_t 端口状态   0:空闲   1:C2   2:C1   3:C1C2   4:A2   5:A2C2   6:A2C1   7:A2C1C2   8:A1   9:A1C2   A:A1C1   B:A1C1C2   C:A1A2   D:A1A2C2   E:A1A2C1   F:A1A2C1C2
+ * @return uint8_t 端口状态   0:空闲   1:C2   2:C1   3:C1C2   4:A2   5:A2C2   6:A2C1   7:A2C1C2   8:A1   9:A1C2   10/A:A1C1   11/B:A1C1C2   12/C:A1A2   13/D:A1A2C2   14/E:A1A2C1   15/F:A1A2C1C2
  * @return ----C2替换为L
  */
 uint8_t AC_State()
@@ -505,3 +504,45 @@ uint8_t Small_A_State()
 // //     Serial.println();
 // //     return ret;
 // // }
+
+/**
+ * @brief  C2(L) 控制L口输入功率30w，关闭输出   Loop循环调用
+ *
+ * @param  REG0x40: 强制控制使能
+ * @param  bit：2     0：不强制控制最大输入功率    1：I2C 控制最大输入功率
+ * @param  bit：7     0：0：无影响             1：强制设置输出功率
+ * @param  当设置为 1 时，在系统控制模式下，可以通过 REG0x45 设置最大输入功率
+ *
+ * @param  REG0x45: 输入功率控制
+ * @param  bit：6-0  输入最大功率设置， 注意与 REG0x107[3:0]的对应关系
+ * @param  可设置值 1~100W，1W/step   输入最大功率=input_pow_set*1W
+ * @param  REG0x4F: 输出功率设置  同上
+ *
+ * //////// 以上功率设置  可用 0x107  0x100 控制    107/100要切换IIC写操作  此处直接用100内寄存器IIC写操作
+ *
+ * @param  REG0x1D: 端口状态指示   C2 口的在线状态指示  0：不在线   1：在线
+ * @param  REG0x1D: bit:0    0：不在线   1：在线
+ *
+ * 
+ * @param REG0x50: C 口配置及输入快充控制   
+ * @param bit:2-0  强制申请快充电压档位   0：5V   1：9V   3：12V  2：10V（若没有 10V 档位，则申请 20V） 4：15V    5.6.7  20V
+ * 
+ *
+ */
+void L_State()
+{
+    if (I2C_Read(SW6306_address, 0x1D) & 0x1 == 1) // C2(L)在线状态
+    {
+        I2C_Write(SW6306_address, 0x40, 0x84);     // 输入 输出功率IIC控制  8高位输出   4低位输入
+        // if (SYS_State() == 2)                      // 充电
+            I2C_Write(SW6306_address, 0x45, 0x14); // 输入设置20w
+            I2C_Write(SW6306_address, 0x50, 0x1); // 1：9V
+        // if (SYS_State() == 1)                      // 放电
+            I2C_Write(SW6306_address, 0x4F, 0x14); // 输出设置20w  //关闭输出  //通路管控制会自动清零，会短暂放电
+        // 以上设置影响所有口    L口不可与其他口同时使用
+    }
+    else
+    {
+        I2C_Write(SW6306_address, 0x40, 0x0); // 不强制控制最大输入输出功率
+    }
+}
