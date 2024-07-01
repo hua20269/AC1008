@@ -7,7 +7,7 @@ void RefreshDisplay(); // 刷新画面
 void sys_init(uint16_t timenum);
 void PowerLOGO();
 
-void Background1(float batv, float bata, uint16_t ACstate, float temp, float sysv, float sysw, uint16_t workp, float batvolume, int xnum, uint16_t batper, float battemp, uint8_t bt_icon);
+void lcdlayout01(uint16_t bat_circ, uint8_t bat_per, float battery_V, float ic_temp, float sys_outinv, float battery_A, float bat_ntc, uint8_t sys, uint8_t A_C);
 
 void BackgroundTime2(uint8_t A_C, uint8_t bt_icon, float sys_outinv, float battery_A, float sys_w, float ic_temp,
                      float bat_ntc, uint8_t bat_per, uint16_t xunhuan);
