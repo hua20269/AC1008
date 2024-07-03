@@ -31,7 +31,7 @@ float SYS_V();           // 系统电压
 float SYS_A();           // 系统 输入/输出 电流
 float Battery_V();       // 电池电压
 float Battery_A();       // 电池 输入/输出 电流
-float IC_Temp();        // 芯片温度
+float IC_Temp();         // 芯片温度
 float NTC_Temp();        // NTC温度
 float Battery_Volume();  // 电池容量
 uint8_t Battery_Per();   // 电池电量百分比
@@ -64,7 +64,8 @@ void Small_A_OFF();
 
 // void L_State(); // 控制L口输入功率30w，关闭输出
 
-void SYS_W_SetMax(); // 设置100W最大充放
-void C2_to_L();   // C2口配置为B/L口模式
+void SYS_W_SetMax(); // 设置100W最大充放功率
+void C2_to_L();      // C2口配置为B/L口模式
+void Easy_Load();    // 空载时间设置
 
 #endif

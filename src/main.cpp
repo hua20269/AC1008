@@ -1,4 +1,4 @@
-#include <SW6306.h>
+#include <sw6306.h>
 #include <Background.h>
 #include <Ticker.h>
 #include <ESP32bt.h>
@@ -115,8 +115,9 @@ void setup()
     Serial.println("ESP32 is restart now!");
 
     I2C_Write_0_100();
-    SYS_W_SetMax(); // 设置100W最大充放
+    SYS_W_SetMax(); // 设置100W最大充放功率
     C2_to_L();      // C2口配置为B/L口模式
+    Easy_Load();    // 空载时间设置
 }
 
 void loop()

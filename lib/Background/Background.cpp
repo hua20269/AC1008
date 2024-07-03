@@ -256,12 +256,12 @@ void lcdlayout01(uint16_t bat_circ, uint8_t bat_per, float battery_V, float ic_t
     sprite1.drawString(num_n, 117, 31); // 电池电流
 
     // A口状态
-    if (A_C == 1 || A_C == 5)
+    if (A_C >= 8)
         sprite1.drawString("ON", 117, 58);
     else
         sprite1.drawString("OFF", 117, 58);
     // C口状态
-    if (A_C == 4 || A_C == 5)
+    if (A_C == 2 || A_C == 3 || A_C == 6 || A_C == 7 || A_C == 10 || A_C == 11 || A_C == 14 || A_C == 15)
         sprite1.drawString("ON", 117, 85);
     else
         sprite1.drawString("OFF", 117, 85);
@@ -380,77 +380,78 @@ void BackgroundTime2(uint8_t A_C, uint8_t bt_icon, float sys_outinv, float batte
     sprite1.fillRoundRect(5, 29, 125, 33, 5, TFT_RED);   // 压背景
     sprite1.fillRoundRect(5, 64, 125, 33, 5, TFT_GOLD);  // 流背景
     sprite1.fillRoundRect(5, 101, 125, 33, 5, violef1);  // 功背景
+
+    // AC_State
+    sprite1.fillRoundRect(1, 0, 25, 25, 5, lvse4);   // A1
+    sprite1.fillRoundRect(28, 0, 25, 25, 5, lvse5);  // A2
+    sprite1.fillRoundRect(82, 0, 25, 25, 5, lvse5);  // C1
+    sprite1.fillRoundRect(109, 0, 25, 25, 5, lvse4); // L(C2)
+
     switch (A_C)
     {
     case 0:
-        sprite1.fillRoundRect(1, 0, 25, 25, 5, lvse1); // 上1
-        sprite1.fillRoundRect(28, 0, 25, 25, 5, lvse2);
-        sprite1.fillRoundRect(55, 0, 25, 25, 5, lvse3);
-        sprite1.fillRoundRect(82, 0, 25, 25, 5, lvse4);
-        sprite1.fillRoundRect(109, 0, 25, 25, 5, lvse5); // 上5
         break;
     case 1:
-        sprite1.fillRoundRect(1, 0, 25, 25, 5, TFT_RED); // 上1
-        sprite1.fillRoundRect(28, 0, 25, 25, 5, lvse2);
-        sprite1.fillRoundRect(55, 0, 25, 25, 5, lvse3);
-        sprite1.fillRoundRect(82, 0, 25, 25, 5, lvse4);
-        sprite1.fillRoundRect(109, 0, 25, 25, 5, lvse5); // 上5
+        sprite1.fillRoundRect(109, 0, 25, 25, 5, TFT_PINK); // L(C2)
         break;
     case 2:
-        sprite1.fillRoundRect(1, 0, 25, 25, 5, lvse1); // 上1
-        sprite1.fillRoundRect(28, 0, 25, 25, 5, TFT_RED);
-        sprite1.fillRoundRect(55, 0, 25, 25, 5, lvse3);
-        sprite1.fillRoundRect(82, 0, 25, 25, 5, lvse4);
-        sprite1.fillRoundRect(109, 0, 25, 25, 5, lvse5); // 上5
+        sprite1.fillRoundRect(82, 0, 25, 25, 5, TFT_PINK); // C1
         break;
     case 3:
-        sprite1.fillRoundRect(1, 0, 25, 25, 5, TFT_RED); // 上1
-        sprite1.fillRoundRect(28, 0, 25, 25, 5, TFT_RED);
-        sprite1.fillRoundRect(55, 0, 25, 25, 5, lvse3);
-        sprite1.fillRoundRect(82, 0, 25, 25, 5, lvse4);
-        sprite1.fillRoundRect(109, 0, 25, 25, 5, lvse5); // 上5
+        sprite1.fillRoundRect(82, 0, 25, 25, 5, TFT_PINK);  // C1
+        sprite1.fillRoundRect(109, 0, 25, 25, 5, TFT_CYAN); // L(C2)
         break;
     case 4:
-        sprite1.fillRoundRect(1, 0, 25, 25, 5, lvse1); // 上1
-        sprite1.fillRoundRect(28, 0, 25, 25, 5, lvse2);
-        sprite1.fillRoundRect(55, 0, 25, 25, 5, lvse3);
-        sprite1.fillRoundRect(82, 0, 25, 25, 5, TFT_RED);
-        sprite1.fillRoundRect(109, 0, 25, 25, 5, lvse5); // 上5
+        sprite1.fillRoundRect(28, 0, 25, 25, 5, TFT_CYAN); // A2
         break;
     case 5:
-        sprite1.fillRoundRect(1, 0, 25, 25, 5, TFT_RED); // 上1
-        sprite1.fillRoundRect(28, 0, 25, 25, 5, lvse2);
-        sprite1.fillRoundRect(55, 0, 25, 25, 5, lvse3);
-        sprite1.fillRoundRect(82, 0, 25, 25, 5, TFT_RED);
-        sprite1.fillRoundRect(109, 0, 25, 25, 5, lvse5); // 上5
+        sprite1.fillRoundRect(28, 0, 25, 25, 5, TFT_PINK);  // A2
+        sprite1.fillRoundRect(109, 0, 25, 25, 5, TFT_CYAN); // L(C2)
         break;
     case 6:
-        sprite1.fillRoundRect(1, 0, 25, 25, 5, lvse1); // 上1
-        sprite1.fillRoundRect(28, 0, 25, 25, 5, TFT_RED);
-        sprite1.fillRoundRect(55, 0, 25, 25, 5, lvse3);
-        sprite1.fillRoundRect(82, 0, 25, 25, 5, TFT_RED);
-        sprite1.fillRoundRect(109, 0, 25, 25, 5, lvse5); // 上5
+        sprite1.fillRoundRect(28, 0, 25, 25, 5, TFT_PINK); // A2
+        sprite1.fillRoundRect(82, 0, 25, 25, 5, TFT_CYAN); // C1
         break;
     case 7:
-        sprite1.fillRoundRect(1, 0, 25, 25, 5, TFT_RED); // 上1
-        sprite1.fillRoundRect(28, 0, 25, 25, 5, TFT_RED);
-        sprite1.fillRoundRect(55, 0, 25, 25, 5, lvse3);
-        sprite1.fillRoundRect(82, 0, 25, 25, 5, TFT_RED);
-        sprite1.fillRoundRect(109, 0, 25, 25, 5, lvse5); // 上5
+        sprite1.fillRoundRect(28, 0, 25, 25, 5, TFT_CYAN);  // A2
+        sprite1.fillRoundRect(82, 0, 25, 25, 5, TFT_PINK);  // C1
+        sprite1.fillRoundRect(109, 0, 25, 25, 5, TFT_CYAN); // L(C2)
         break;
     case 8:
-        sprite1.fillRoundRect(1, 0, 25, 25, 5, lvse1); // 上1
-        sprite1.fillRoundRect(28, 0, 25, 25, 5, lvse2);
-        sprite1.fillRoundRect(55, 0, 25, 25, 5, TFT_RED);
-        sprite1.fillRoundRect(82, 0, 25, 25, 5, lvse4);
-        sprite1.fillRoundRect(109, 0, 25, 25, 5, lvse5); // 上5
+        sprite1.fillRoundRect(1, 0, 25, 25, 5, TFT_PINK); // A1
         break;
-    case 16:
-        sprite1.fillRoundRect(1, 0, 25, 25, 5, lvse1); // 上1
-        sprite1.fillRoundRect(28, 0, 25, 25, 5, lvse2);
-        sprite1.fillRoundRect(55, 0, 25, 25, 5, lvse3);
-        sprite1.fillRoundRect(82, 0, 25, 25, 5, lvse4);
-        sprite1.fillRoundRect(109, 0, 25, 25, 5, TFT_RED); // 上5
+    case 9:
+        sprite1.fillRoundRect(1, 0, 25, 25, 5, TFT_PINK);   // A1
+        sprite1.fillRoundRect(109, 0, 25, 25, 5, TFT_CYAN); // L(C2)
+        break;
+    case 10:
+        sprite1.fillRoundRect(1, 0, 25, 25, 5, TFT_PINK);  // A1
+        sprite1.fillRoundRect(82, 0, 25, 25, 5, TFT_CYAN); // C1
+        break;
+    case 11:
+        sprite1.fillRoundRect(1, 0, 25, 25, 5, TFT_CYAN);   // A1
+        sprite1.fillRoundRect(82, 0, 25, 25, 5, TFT_CYAN);  // C1
+        sprite1.fillRoundRect(109, 0, 25, 25, 5, TFT_PINK); // L(C2)
+        break;
+    case 12:
+        sprite1.fillRoundRect(1, 0, 25, 25, 5, TFT_PINK);  // A1
+        sprite1.fillRoundRect(28, 0, 25, 25, 5, TFT_CYAN); // A2
+        break;
+    case 13:
+        sprite1.fillRoundRect(1, 0, 25, 25, 5, TFT_PINK);   // A1
+        sprite1.fillRoundRect(28, 0, 25, 25, 5, TFT_CYAN);  // A2
+        sprite1.fillRoundRect(109, 0, 25, 25, 5, TFT_PINK); // L(C2)
+        break;
+    case 14:
+        sprite1.fillRoundRect(1, 0, 25, 25, 5, TFT_PINK);  // A1
+        sprite1.fillRoundRect(28, 0, 25, 25, 5, TFT_CYAN); // A2
+        sprite1.fillRoundRect(82, 0, 25, 25, 5, TFT_PINK); // C1
+        break;
+    case 15:
+        sprite1.fillRoundRect(1, 0, 25, 25, 5, TFT_PINK);   // A1
+        sprite1.fillRoundRect(28, 0, 25, 25, 5, TFT_CYAN);  // A2
+        sprite1.fillRoundRect(82, 0, 25, 25, 5, TFT_PINK);  // C1
+        sprite1.fillRoundRect(109, 0, 25, 25, 5, TFT_CYAN); // L(C2)
         break;
     default:
         break;
@@ -500,7 +501,7 @@ void BackgroundTime2(uint8_t A_C, uint8_t bt_icon, float sys_outinv, float batte
     sprite1.loadFont(alibb);                // 字体设置
     sprite1.drawString("A1", 14, 13);       // 上1
     sprite1.drawString("A2", 41, 13);
-    sprite1.drawString("B", 68, 13);
+    // sprite1.drawString("B", 68, 13);
     sprite1.drawString("C", 95, 13);
     sprite1.drawString("L", 122, 13); // 上5
     sprite1.loadFont(alibb40);        // 字体设置
@@ -576,25 +577,28 @@ void BackgroundTime3(uint8_t week, float batv, float sysv, uint16_t workp, uint1
     sprite1.drawFastHLine(0, 101, 240, TFT_WHITE);  // 线条横
     sprite1.drawFastVLine(151, 102, 33, TFT_WHITE); // 线条竖
     sprite1.loadFont(alibb);
-    if (ACstate == 1 || ACstate == 4 || ACstate == 5)
+    if (ACstate != 0)
     {
-        if (ACstate == 1)
-        {
-            sprite1.drawString("A", 175, 83);
-            // sprite1.fillRoundRect(85, 0, 30, 30, 5, TFT_RED); // 2
-            // sprite1.fillRoundRect(47, 0, 30, 30, 5, green3);     // 上1
-        }
-        if (ACstate == 4)
-        {
-            sprite1.drawString("C", 175, 83);
-            // sprite1.fillRoundRect(47, 0, 30, 30, 5, TFT_RED); // 上1
-            // sprite1.fillRoundRect(85, 0, 30, 30, 5, TFT_YELLOW); // 2
-        }
-        if (ACstate == 5)
+        if (ACstate == 10 || ACstate == 11 || ACstate == 14 || ACstate == 15)
         {
             sprite1.drawString("A&C", 175, 83);
             // sprite1.fillRoundRect(47, 0, 30, 30, 5, TFT_RED); // 上1
             // sprite1.fillRoundRect(85, 0, 30, 30, 5, TFT_RED); // 2
+        }
+        else
+        {
+            if (ACstate >= 8)
+            {
+                sprite1.drawString("A", 175, 83);
+                // sprite1.fillRoundRect(85, 0, 30, 30, 5, TFT_RED); // 2
+                // sprite1.fillRoundRect(47, 0, 30, 30, 5, green3);     // 上1
+            }
+            if (ACstate == 2 || ACstate == 3 || ACstate == 6 || ACstate == 7)
+            {
+                sprite1.drawString("C", 175, 83);
+                // sprite1.fillRoundRect(47, 0, 30, 30, 5, TFT_RED); // 上1
+                // sprite1.fillRoundRect(85, 0, 30, 30, 5, TFT_YELLOW); // 2
+            }
         }
     }
     else
@@ -1089,7 +1093,7 @@ void BackgroundTime5(float battery_V, float sys_outinv, uint8_t sys, uint8_t A_C
     sprite1.fillRoundRect(0, 45, 24, 24, 5, TFT_YELLOW); // 位置，宽高，圆角半径 ，背景色  ////实心圆角矩形
     sprite1.loadFont(KaiTi22);
     sprite1.setTextColor(TFT_BLACK);
-    sprite1.drawString("温", 1, 45 + 1);
+    sprite1.drawString("芯", 1, 45 + 1);
 
     sprite1.loadFont(JianTi26);
     sprite1.setTextColor(TFT_CYAN);
@@ -1168,13 +1172,12 @@ void BackgroundTime5(float battery_V, float sys_outinv, uint8_t sys, uint8_t A_C
      */
     sprite1.loadFont(JianTi20);
     sprite1.setTextColor(TFT_BLACK);
-    // if A_C == 5   A C 全开
-    if (A_C == 1 || A_C == 5) // A口开
+    if (A_C >= 8) // A1口开
     {
         sprite1.fillRoundRect(120, 24, 18, 18, 3, TFT_PINK); // 位置，宽高，半径  // 实心 圆角矩形
         sprite1.drawString("A", 122, 25);
     }
-    if (A_C == 4 || A_C == 5) // C口开
+    if (A_C == 2 || A_C == 3 || A_C == 6 || A_C == 7 || A_C == 10 || A_C == 11 || A_C == 14 || A_C == 15) // C1口开
     {
         sprite1.fillRoundRect(145, 24, 18, 18, 3, TFT_CYAN); // 位置，宽高，半径  // 实心 圆角矩形
         sprite1.drawString("C", 147, 25);
