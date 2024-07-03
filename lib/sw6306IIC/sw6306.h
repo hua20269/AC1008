@@ -23,20 +23,23 @@ typedef unsigned int uint32_t;
 uint8_t I2C_Write(uint8_t mcuAddr, uint8_t regAddr, uint8_t senddate); // 写数据
 uint16_t I2C_Read(uint8_t mcuAddr, uint16_t regAddr);                  // 读数据
 void I2C_Write_0_100();                                                // 0-100 寄存器写使能
-// uint8_t I2C_Write_100_156(); // 100-156 寄存器写使能
 
+// uint8_t I2C_Write_100_156(); // 100-156 寄存器写使能
 // uint16_t ADC_Data();         // SW6306_ADC
+
 float SYS_V();           // 系统电压
 float SYS_A();           // 系统 输入/输出 电流
 float Battery_V();       // 电池电压
 float Battery_A();       // 电池 输入/输出 电流
-float MCU_Temp();        // 芯片温度
+float IC_Temp();        // 芯片温度
 float NTC_Temp();        // NTC温度
 float Battery_Volume();  // 电池容量
 uint8_t Battery_Per();   // 电池电量百分比
 uint8_t SYS_State();     // 充放电状态   1 放电   2 充电
 uint8_t AC_State();      // 端口在线状态 C2是L口   0:空闲   1:C2   2:C1   3:C1C2   4:A2   5:A2C2   6:A2C1   7:A2C1C2   8:A1   9:A1C2   A:A1C1   B:A1C1C2   C:A1A2   D:A1A2C2   E:A1A2C1   F:A1A2C1C2
 uint8_t Small_A_State(); // 小电流状态   0: 关    1: 开
+void Small_A_ON();
+void Small_A_OFF();
 
 //  void sysstate(uint8_t *H_value, uint8_t *L_value, float *battery_A); // 系统充放电L口和A1口的状态
 //  uint8_t batzhuangtai();                                              // 电池状态
@@ -59,6 +62,9 @@ uint8_t Small_A_State(); // 小电流状态   0: 关    1: 开
 
 // void NTCLimit();//设置NTC温度上限保护60℃ 改为 65℃     温度每上升1度，电压下降800mv
 
-void L_State(); // 控制L口输入功率30w，关闭输出
+// void L_State(); // 控制L口输入功率30w，关闭输出
+
+void SYS_W_SetMax(); // 设置100W最大充放
+void C2_to_L();   // C2口配置为B/L口模式
 
 #endif

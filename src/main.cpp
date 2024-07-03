@@ -57,7 +57,7 @@ void setup()
     //      I2C_Write(SW6306_address, 0x30, 0x4);  // 0100  // 轻载检测电流设置 VOUT<7.65V 或者 VOUT>7.65V 且 reg0x30[0]=0:  默认:55mA  此设置为:10mA
     //      I2C_Write(SW6306_address, 0x33, 0x3);  // 0011  // 小电流使能
     //  }
-    //  NTCLimit(); // 设置NTC温度上限保护
+
     DisplayInit(); // 显示初始化
     // PowerLOGO();   // 开机LOGO
     // delay(1000);
@@ -113,38 +113,42 @@ void setup()
     //                         NULL             // 核心  0\1 自动选择
     // );
     Serial.println("ESP32 is restart now!");
+
+    I2C_Write_0_100();
+    SYS_W_SetMax(); // 设置100W最大充放
+    C2_to_L();      // C2口配置为B/L口模式
 }
 
 void loop()
 {
     delay(200);
-    float sys_v, sys_a, sys_w, bat_v, bat_a, mcu_temp, ntc_temp, bat_volume, bat_m;          //    系统输入输出电压   ic温度   ntc电压   输入/输出电流   系统功率 电池温度  电池最大容量   电池当前容量
+    float sys_v, sys_a, sys_w, bat_v, bat_a, ic_temp, ntc_temp, bat_volume, bat_m;           //    系统输入输出电压   ic温度   ntc电压   输入/输出电流   系统功率 电池温度  电池最大容量   电池当前容量
     uint16_t year, time, pass;                                                               // 年份   读蓝牙链接时间    四位密码
     uint8_t month, day, hour, minute, sec, week, bat_per, sys_state, ac_state, smalla_state; //  月  日  时  分  秒  星期     电池百分比   系统充放电状态   4个接口状态AACL   小电流状态
 
     uint8_t smalla, topic, ota, idlock;   // 小电流开关         屏幕方向1上3下     OTA    ID锁
     uint8_t currentTime = EEPROM.read(5); // 睡眠时间
     unsigned long currentTime1;
-    I2C_Write_0_100();
+
     while (currentTime >= 0) // sleeptime 转次数
     {
-        Serial.println("0x23---------------------------------");
-        Serial.println(I2C_Read(SW6306_address, 0x23)); // 0-100 寄存器写使能
-        Serial.println("0x24-----------------------");
-        Serial.println(I2C_Read(SW6306_address, 0x24)); // 0-100 寄存器写使能
-        sys_v = SYS_V();                                // 系统电压
-        sys_a = SYS_A();                                // 系统 输入/输出 电流
-        sys_w = sys_v * sys_a;                          // 系统功率大小
-        bat_v = Battery_V();                            // 电池电压
-        bat_a = Battery_A();                            // 电池 输入/输出 电流
-        mcu_temp = MCU_Temp();                          // 芯片温度
-        ntc_temp = NTC_Temp();                          // NTC温度
-        bat_volume = Battery_Volume();                  // 电池最大容量
-        bat_per = Battery_Per();                        // 电池电量百分比
-        bat_m = bat_volume * bat_per / 100;             // 电池当前容量判断
-        sys_state = SYS_State();                        // 充放电状态   1 放电   2 充电
-        ac_state = AC_State();                          // 端口在线状态 C2是L口   0:空闲   1:C2   2:C1   3:C1C2   4:A2   5:A2C2   6:A2C1   7:A2C1C2   8:A1   9:A1C2   A:A1C1   B:A1C1C2   C:A1A2   D:A1A2C2   E:A1A2C1   F:A1A2C1C2
-        smalla_state = Small_A_State();                 // 小电流状态   0: 关    1: 开
+        Serial.println("------------------------------------------------------------------------------loop------------------------");
+        Serial.print("0x23: ");
+        Serial.println(I2C_Read(SW6306_address, 0x23), HEX); // 关闭低功耗   打印 0x1
+        Serial.print("0x24: ");
+        Serial.println(I2C_Read(SW6306_address, 0x24), HEX); // 0-100 寄存器写使能   打印 0x80
+        sys_v = SYS_V();                                     // 系统电压
+        sys_a = SYS_A();                                     // 系统 输入/输出 电流
+        sys_w = sys_v * sys_a;                               // 系统功率大小
+        bat_v = Battery_V();                                 // 电池电压
+        bat_a = Battery_A();                                 // 电池 输入/输出 电流
+        ic_temp = IC_Temp();                                 // 芯片温度
+        ntc_temp = NTC_Temp();                               // NTC温度
+        bat_m = Battery_Volume();                            // 库仑计当前容量
+        bat_per = Battery_Per();                             // 电池电量百分比
+        sys_state = SYS_State();                             // 充放电状态   1 放电   2 充电
+        ac_state = AC_State();                               // 端口在线状态 C2是L口   0:空闲   1:C2   2:C1   3:C1C2   4:A2   5:A2C2   6:A2C1   7:A2C1C2   8:A1   9:A1C2   A:A1C1   B:A1C1C2   C:A1A2   D:A1A2C2   E:A1A2C1   F:A1A2C1C2
+        smalla_state = Small_A_State();                      // 小电流状态   0: 关    1: 开
         // L_State();                                      // 控制L口输入功率20w，关闭输出
         eebat_circ(bat_per);                                         // 电池循环次数的判断
         bat_circ = EEPROM.read(2) / 2;                               // 判断之后读取  电池循环次数    /2减缓次数  20-80
@@ -173,7 +177,7 @@ void loop()
             }
             else
             beijing1:
-                lcdlayout01(bat_circ, bat_per, bat_v, mcu_temp, sys_v, sys_a, ntc_temp, sys_state, ac_state); // 显示相关参数
+                lcdlayout01(bat_circ, bat_per, bat_v, ic_temp, sys_v, sys_a, ntc_temp, sys_state, ac_state); // 显示相关参数
             break;
         case 2:
             if (yan == 1)
@@ -192,7 +196,7 @@ void loop()
             }
             else
             beijing2:
-                BackgroundTime2(ac_state, bt_state, sys_v, sys_a, sys_w, mcu_temp, ntc_temp, bat_per, bat_circ);
+                BackgroundTime2(ac_state, bt_state, sys_v, sys_a, sys_w, ic_temp, ntc_temp, bat_per, bat_circ);
             break;
         case 3:
             if (yan == 1)
@@ -212,8 +216,8 @@ void loop()
             else
             {
             beijing3:
-                BackgroundTime3(week, bat_v, sys_v, sys_state, ac_state, bat_a, sys_w, bat_m, bat_circ, bat_per, bt_state);
-                BackgroundTime3_2(month, day, ntc_temp, mcu_temp, hour, minute, sec, smalla_state);
+                BackgroundTime3(week, bat_v, sys_v, sys_state, ac_state, sys_a, sys_w, bat_m, bat_circ, bat_per, bt_state);
+                BackgroundTime3_2(month, day, ntc_temp, ic_temp, hour, minute, sec, smalla_state);
             }
             break;
         case 4:
@@ -234,7 +238,7 @@ void loop()
             else
             {
             beijing4:
-                BackgroundTime4(bat_v, sys_v, sys_state, bat_a, sys_w, bat_per, bt_state, mcu_temp, ntc_temp);
+                BackgroundTime4(bat_v, sys_v, sys_state, sys_a, sys_w, bat_per, bt_state, ic_temp, ntc_temp);
             }
             break;
         case 5:
@@ -255,7 +259,7 @@ void loop()
             else
             {
             beijing5:
-                BackgroundTime5(bat_v, sys_v, sys_state, ac_state, bat_a, sys_w, bat_per, bat_m, bt_state, mcu_temp, ntc_temp, month, day, hour, minute, sec, week);
+                BackgroundTime5(bat_v, sys_v, sys_state, ac_state, sys_a, sys_w, bat_per, bat_m, bt_state, ic_temp, ntc_temp, month, day, hour, minute, sec, week);
             }
             break;
         default:
@@ -276,7 +280,7 @@ void loop()
             else
             {
             beijing10:
-                BackgroundTime5(bat_v, sys_v, sys_state, ac_state, bat_a, sys_w, bat_per, bat_m, bt_state, mcu_temp, ntc_temp, month, day, hour, minute, sec, week);
+                BackgroundTime5(bat_v, sys_v, sys_state, ac_state, sys_a, sys_w, bat_per, bat_m, bt_state, ic_temp, ntc_temp, month, day, hour, minute, sec, week);
             }
             break;
         }
@@ -310,23 +314,23 @@ void loop()
                             switch (EEPROM.read(4))
                             {
                             case 1:
-                                lcdlayout01(bat_circ, bat_per, bat_v, mcu_temp, sys_v, sys_a, ntc_temp, sys_state, ac_state); // 显示相关参数
+                                lcdlayout01(bat_circ, bat_per, bat_v, ic_temp, sys_v, sys_a, ntc_temp, sys_state, ac_state); // 显示相关参数
                                 break;
                             case 2:
-                                BackgroundTime2(ac_state, bt_state, sys_v, sys_a, sys_w, mcu_temp, ntc_temp, bat_per, bat_circ);
+                                BackgroundTime2(ac_state, bt_state, sys_v, sys_a, sys_w, ic_temp, ntc_temp, bat_per, bat_circ);
                                 break;
                             case 3:
-                                BackgroundTime3(week, bat_v, sys_v, sys_state, ac_state, bat_a, sys_w, bat_m, bat_circ, bat_per, bt_state);
-                                BackgroundTime3_2(month, day, ntc_temp, mcu_temp, hour, minute, sec, smalla_state);
+                                BackgroundTime3(week, bat_v, sys_v, sys_state, ac_state, sys_a, sys_w, bat_m, bat_circ, bat_per, bt_state);
+                                BackgroundTime3_2(month, day, ntc_temp, ic_temp, hour, minute, sec, smalla_state);
                                 break;
                             case 4:
-                                BackgroundTime4(bat_v, sys_v, sys_state, bat_a, sys_w, bat_per, bt_state, mcu_temp, ntc_temp);
+                                BackgroundTime4(bat_v, sys_v, sys_state, sys_a, sys_w, bat_per, bt_state, ic_temp, ntc_temp);
                                 break;
                             case 5:
-                                BackgroundTime5(bat_v, sys_v, sys_state, ac_state, bat_a, sys_w, bat_per, bat_m, bt_state, mcu_temp, ntc_temp, month, day, hour, minute, sec, week);
+                                BackgroundTime5(bat_v, sys_v, sys_state, ac_state, sys_a, sys_w, bat_per, bat_m, bt_state, ic_temp, ntc_temp, month, day, hour, minute, sec, week);
                                 break;
                             default:
-                                BackgroundTime5(bat_v, sys_v, sys_state, ac_state, bat_a, sys_w, bat_per, bat_m, bt_state, mcu_temp, ntc_temp, month, day, hour, minute, sec, week);
+                                BackgroundTime5(bat_v, sys_v, sys_state, ac_state, sys_a, sys_w, bat_per, bat_m, bt_state, ic_temp, ntc_temp, month, day, hour, minute, sec, week);
                                 break;
                             }
                             bleKeyboard.begin(); // 打开蓝牙
@@ -342,7 +346,7 @@ void loop()
                                 sys_w = sys_v * sys_a;              // 系统功率大小
                                 bat_v = Battery_V();                // 电池电压
                                 bat_a = Battery_A();                // 电池 输入/输出 电流
-                                mcu_temp = MCU_Temp();              // 芯片温度
+                                ic_temp = IC_Temp();                // 芯片温度
                                 ntc_temp = NTC_Temp();              // NTC温度
                                 bat_volume = Battery_Volume();      // 电池容量
                                 bat_per = Battery_Per();            // 电池电量百分比
@@ -354,64 +358,47 @@ void loop()
                                 topic = EEPROM.read(3); // 读用户设置的值（1上3下）屏幕方向
                                 time = eepromread();    // 读蓝牙链接时间
 
-                                Serial.print("smalla_state: ");
-                                Serial.println(smalla_state);
-
                                 if (smalla_state == 0 && EEPROM.read(8) == 1) // smalla: OFF   //蓝牙给的设置 1 让打开小电流
                                 {
-                                    // A2_ON();
-                                    // kqxdl();          // 写1打开小电流
-                                    // A2_OFF();         // 开启小电流之后关闭A2口   本设备没有A2口，故不受影响
-                                    // smalla = xdlzt(); // 读取小电流状态
-                                    // Serial.print("smallaON: ok ");
-                                    // Serial.println(smalla);
-                                    // delay(1000);
-                                    // Serial.println(xdlzt());
+                                    Small_A_ON();
                                 }
                                 else if (smalla_state == 1 && EEPROM.read(8) == 0)
                                 {
-                                    // A2_ON();
-                                    // kqxdl(); // 再次写1关闭小电流
-                                    // A2_OFF();
-                                    // smalla = xdlzt(); // 读取小电流状态
-                                    // Serial.print("smallaOFF: ok ");
-                                    // Serial.println(smalla);
-                                    // delay(1000);
-                                    // Serial.println(xdlzt());
+                                    Small_A_OFF();
                                 }
 
                                 delay(5);
                                 switch (EEPROM.read(4))
                                 {
                                 case 1:
-                                    lcdlayout01(bat_circ, bat_per, bat_v, mcu_temp, sys_v, sys_a, ntc_temp, sys_state, ac_state); // 显示相关参数
+                                    lcdlayout01(bat_circ, bat_per, bat_v, ic_temp, sys_v, sys_a, ntc_temp, sys_state, ac_state); // 显示相关参数
                                     break;
                                 case 2:
-                                    BackgroundTime2(ac_state, bt_state, sys_v, sys_a, sys_w, mcu_temp, ntc_temp, bat_per, bat_circ);
+                                    BackgroundTime2(ac_state, bt_state, sys_v, sys_a, sys_w, ic_temp, ntc_temp, bat_per, bat_circ);
                                     break;
                                 case 3:
                                     BackgroundTime3(week, bat_v, sys_v, sys_state, ac_state, bat_a, sys_w, bat_m, bat_circ, bat_per, bt_state);
-                                    BackgroundTime3_2(month, day, ntc_temp, mcu_temp, hour, minute, sec, smalla_state);
+                                    BackgroundTime3_2(month, day, ntc_temp, ic_temp, hour, minute, sec, smalla_state);
                                     break;
                                 case 4:
-                                    BackgroundTime4(bat_v, sys_v, sys_state, bat_a, sys_w, bat_per, bt_state, mcu_temp, ntc_temp);
+                                    BackgroundTime4(bat_v, sys_v, sys_state, sys_a, sys_w, bat_per, bt_state, ic_temp, ntc_temp);
                                     break;
                                 case 5:
-                                    BackgroundTime5(bat_v, sys_v, sys_state, ac_state, bat_a, sys_w, bat_per, bat_m, bt_state, mcu_temp, ntc_temp, month, day, hour, minute, sec, week);
+                                    BackgroundTime5(bat_v, sys_v, sys_state, ac_state, sys_a, sys_w, bat_per, bat_m, bt_state, ic_temp, ntc_temp, month, day, hour, minute, sec, week);
                                     break;
                                 default:
-                                    BackgroundTime5(bat_v, sys_v, sys_state, ac_state, bat_a, sys_w, bat_per, bat_m, bt_state, mcu_temp, ntc_temp, month, day, hour, minute, sec, week);
+                                    BackgroundTime5(bat_v, sys_v, sys_state, ac_state, sys_a, sys_w, bat_per, bat_m, bt_state, ic_temp, ntc_temp, month, day, hour, minute, sec, week);
                                     break;
                                 }
                                 jsonBuffer1["chipid"] = ESP.getEfuseMac() & 0X0000FFFFFFFFFFFF;
                                 jsonBuffer1["name"] = "AC1008M";              // 设备名称
                                 jsonBuffer1["software"] = "v3.0";             // 固件版本
-                                jsonBuffer1["hardware"] = "v3.1";             // 硬件版本
+                                jsonBuffer1["hardware"] = "v3.2";             // 硬件版本
                                 jsonBuffer1["bat_cir"] = bat_circ;            // 循环次数
                                 jsonBuffer1["bat_V"] = String(bat_v, 3);      // 电池电压
                                 jsonBuffer1["bat_A"] = String(bat_a, 3);      // 电流
                                 jsonBuffer1["A_C"] = ac_state;                // AC口状态
-                                jsonBuffer1["ic_temp"] = String(mcu_temp, 3); // ic温度
+                                jsonBuffer1["ic_temp"] = String(ic_temp, 3);  // ic温度
                                 jsonBuffer1["sys_outinv"] = String(sys_v, 3); // 系统充放电压
                                 jsonBuffer1["sys_w"] = String(sys_w, 3);      // 系统功率
                                 jsonBuffer1["sys"] = sys_state;               // 充放电状态
@@ -432,7 +419,7 @@ void loop()
                                 //     jsonBuffer1["led-sleep"] = EEPROM.read(5); // 睡眠时间  最大存储255   小程序设置值  30  60  90  120  常亮
                                 // jsonBuffer1["topic_dir"] = EEPROM.read(3);     // 屏幕方向  1  3
                                 // jsonBuffer1["blt_Time"] = eepromread();        // 蓝牙打开及连接时间
-                                // jsonBuffer1["small_A"] = xdlzt();              // 读取最新的小电流状态  发送给小程序
+                                // jsonBuffer1["small_A"] = Small_A_State();              // 读取最新的小电流状态  发送给小程序
 
                                 // serializeJson(jsonBuffer1, output1);
                                 // jsonBuffer1.clear();
@@ -520,7 +507,8 @@ void loop()
                                 Serial.print("AC_OFF: ");
                                 Serial.println(EEPROM.read(12));
                                 Serial.print("circ: ");
-                                Serial.println(EEPROM.read(2));
+                                Serial.print(EEPROM.read(2));
+                                Serial.println("/2");
 
                                 unsigned long currentTime2;
                                 currentTime2 = millis(); // 程序执行到此时间

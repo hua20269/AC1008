@@ -1,7 +1,7 @@
 #include <SW6306.h>
 
 /**
- * @brief IIC数据写入
+ * @brief IIC数据写入  uint8_t
  *
  * @param mcuAddr 设备地址
  * @param regAddr 寄存器地址
@@ -9,6 +9,28 @@
  * @return uint8_t  通讯成功：0   其他通讯失败
  */
 uint8_t I2C_Write(uint8_t mcuAddr, uint8_t regAddr, uint8_t senddate)
+{
+    /*  Write Device Address */
+    Wire.beginTransmission(mcuAddr);
+    /*  Write Subaddresses */
+    Wire.write(regAddr);
+    /*  Write Databytes */
+    Wire.write(senddate);
+    /* 完成一次IIC通讯 默认发送一个停止位*/
+
+    delay(5);
+    return Wire.endTransmission();
+    // delay(5);
+}
+/**
+ * @brief IIC数据写入  uint16_t
+ *
+ * @param mcuAddr 设备地址
+ * @param regAddr 寄存器地址
+ * @param senddate 发送的数据
+ * @return uint8_t  通讯成功：0   其他通讯失败
+ */
+uint8_t I2C_Write_16(uint8_t mcuAddr, uint16_t regAddr, uint8_t senddate)
 {
     /*  Write Device Address */
     Wire.beginTransmission(mcuAddr);
@@ -74,45 +96,13 @@ uint16_t I2C_Read(uint8_t mcuAddr, uint16_t regAddr)
  * @param 4) 若要操作REG0x100~REG0x156，写REG0x24=0x81
  * @param 若要退出I2C写操作使能，则写REG0x24=0x00
  */
-// 以下两个不能同时使能
 void I2C_Write_0_100()
 {
-
-    I2C_Write(SW6306_address, 0x23, 0x01);
+    I2C_Write(SW6306_address, 0x23, 0x01); // 关闭低功耗
     I2C_Write(SW6306_address, 0x24, 0x20);
     I2C_Write(SW6306_address, 0x24, 0x40);
-    I2C_Write(SW6306_address, 0x24, 0x80);
-    // I2C_Write(SW6306_address, 0x1FF, 0x0) ; // 0
-
-    Serial.println("--------------------------------------------------------------------------");
+    I2C_Write(SW6306_address, 0x24, 0x80); // 最终状态
 }
-// uint8_t I2C_Write_0_100()
-// {
-//     Wire.beginTransmission(0X3C);
-//     Wire.write(0x23);
-//     Wire.write(0x01); // 第一关闭低功耗步
-//     Wire.endTransmission();
-//     Serial.println(I2C_Read(0X3C, 0x23), HEX);
-//     /*  Write Device Address */
-//     Wire.beginTransmission(0X3C);
-//     /*  Write Subaddresses */
-//     Wire.write(0x24);
-//     /*  Write Databytes */
-//     Wire.write(0x20);
-//     // 第二步
-//     Wire.endTransmission(); /* 完成一次IIC通讯 默认发送一个停止位*/
-//     Serial.println(I2C_Read(0X3C, 0x24), HEX);
-//     Wire.beginTransmission(0X3C);
-//     Wire.write(0x24);
-//     Wire.write(0x40); // 第三步
-//     Wire.endTransmission();
-//     Serial.println(I2C_Read(0X3C, 0x24), HEX);
-//     Wire.beginTransmission(0X3C);
-//     Wire.write(0x24);
-//     Wire.write(0x80); // 第四步
-
-//     return Wire.endTransmission();
-// }
 void I2C_Write_100_156()
 {
     I2C_Write(SW6306_address, 0x24, 0x81); // 100-156 寄存器写使能
@@ -132,12 +122,13 @@ uint16_t ADC_Data()
     uint16_t ADCvalue;
     uint16_t r_buffer[2];
     r_buffer[1] = I2C_Read(SW6306_address, 0x31); // 读取ADC数据低8位
-    Serial.println(r_buffer[1], HEX);
     r_buffer[0] = I2C_Read(SW6306_address, 0x32); // 读取ADC数据高4位
-    Serial.println(r_buffer[0], HEX);
-    ADCvalue = (r_buffer[0] << 8) + r_buffer[1]; // adc数据的合并
+    ADCvalue = r_buffer[1] + (r_buffer[0] << 8);  // adc数据的合并
 
     // ADCvalue = (I2C_Read(SW6306_address, 0x31) + I2C_Read(SW6306_address, 0x32) << 8); // adc数据的合并   低 8 位必须先读
+
+    Serial.println(r_buffer[1], HEX);
+    Serial.println(r_buffer[0], HEX);
 
     Serial.print("ADC_Data: ");
     Serial.println(ADCvalue);
@@ -201,13 +192,13 @@ float Battery_A()
  * @brief  REG0x30: ADC配置 ,   ADC 数据选择  9：芯片温度计算公式为：(Adc_data[11:0] – 1839)/6.82℃
  * @return float 芯片温度
  */
-float MCU_Temp()
+float IC_Temp()
 {
-    I2C_Write(SW6306_address, 0x30, 0x9);        // 选择 芯片温度
-    float mcu_temp = (ADC_Data() - 1839) / 6.82; // 芯片温度 = (adc-1839) / 6.82℃
-    Serial.print("--MCU_Temp: ");
-    Serial.println(mcu_temp);
-    return mcu_temp;
+    I2C_Write(SW6306_address, 0x30, 0x9);       // 选择 芯片温度
+    float ic_temp = (ADC_Data() - 1839) / 6.82; // 芯片温度 = (adc-1839) / 6.82℃
+    Serial.print("--IC_Temp: ");
+    Serial.println(ic_temp);
+    return ic_temp;
 }
 
 /**
@@ -251,22 +242,30 @@ float NTC_Temp()
 }
 
 /**
- * @brief  电池最大容量
+ * @brief  库仑计当前容量
  * @param  REG0x86: 库仑计最大容量低 8 位   bit: 7-0   库仑计最大容量低 8 位   326.2236mWh/step
- * @param  REG0x87: 库仑计最大容量高 4 位   bit: 3-0   库仑计最大容量高 4 位   326.2236mWh/step  
+ * @param  REG0x87: 库仑计最大容量高 4 位   bit: 3-0   库仑计最大容量高 4 位   326.2236mWh/step
  *
- * @return float  电池最大容量
+ * @param  REG0x88: 库仑计当前容量低8位
+ * @param  REG0x89: 库仑计当前容量中8位
+ * @param  REG0x8A: 库仑计当前容量高8位
+ *
+ * @return float 库仑计当前容量
  */
 float Battery_Volume()
 {
-    float battery_volume = (I2C_Read(SW6306_address, 0x86) + I2C_Read(SW6306_address, 0x87) << 8 ) * 0.3262236;
+    Serial.print("--Battery_Volume_Max: X ");
+    Serial.println((((I2C_Read(SW6306_address, 0x86) + I2C_Read(SW6306_address, 0x87) << 8)) & 0x0FFF) * 0.3262236);                                                  // 库仑计最大容量    数据不对
+    float battery_volume = (((I2C_Read(SW6306_address, 0x88) + I2C_Read(SW6306_address, 0x89) << 8) + I2C_Read(SW6306_address, 0x8A) << 16) & 0xFFFFFF) * 0.00007964; // 库仑计当前容量
+
     Serial.print("--Battery_Volume: ");
     Serial.println(battery_volume);
     return battery_volume;
 }
 
 /**
- * @brief  REG0x94: 最终处理电量   bit: 7-0 最终处理电量    1%/step
+ * @brief  REG0x94: 最终处理电量
+ * @param  bit: 7-0 最终处理电量    1%/step
  * @return uint8_t  电池电量百分比
  */
 uint8_t Battery_Per()
@@ -317,79 +316,40 @@ uint8_t AC_State()
  */
 uint8_t Small_A_State()
 {
-    uint8_t smalla_state = I2C_Read(SW6306_address, 0x12) & 0X2; // 小电流状态
+    uint8_t smalla_state = I2C_Read(SW6306_address, 0x12) >> 1; // 小电流状态
     Serial.print("--Small_A_State: ");
     Serial.println(smalla_state);
     return smalla_state;
 }
 
-// /**
-//  * @brief 系统充放电状态 AC口状态
-//  *
-//  * @param H_value  sys接收 充放状态   1 放电    2 充电
-//  * @param L_value   A_C接收   1_A1   2_A2  3_A1A2  4_C  5_A1C  6_A2C  7_A1A2C  8_B  .....9-16BL充其他放电无意义.....16_L
-//  * @param battery_A 充放电流
-//  *
-//  */
-// void sysstate(uint8_t *H_value, uint8_t *L_value, float *battery_A)
-// {
-//     uint8_t svalue;
-//     svalue = I2C_Read(SW6208_address, 0x0C);
-//     Serial.println(svalue, HEX);
-//     *H_value = svalue >> 6;
-//     Serial.println(*H_value);
-//     *L_value = svalue & 0x1F;
-//     Serial.println(*L_value);
-//     if (*H_value == 1) // 放电
-//     {
-//         *battery_A = battery_outA(); // 放电电流
-//     }
-//     if (*H_value == 2) // 充电
-//     {
-//         *battery_A = battery_inA(); // 充电电流
-//     }
-//     else
-//         *battery_A = battery_outA();
-// }
+/**
+ * @brief  REG0x11B: 插入拔出检测配置4
+ * @param  bit：5   1：由寄存器控制（REG0x11B[4]）
+ * @param  bit：4   1：小电流模式支持设置
+ *
+ * @param  REG0x28: 模式设置    控制进入小电流充电
+ * @param  bit: 1
+ * @param  1) 要进入小电流模式，此bit先写0，之后再写1，小电流模式定时重新打开
+ * @param  2) 要退出小电流模式，此bit写0
+ * @return
+ */
+void Small_A_ON()
+{
+    if (Small_A_State() == 0)
+    {
+        I2C_Write_100_156();                       // 写操作100-156寄存器
+        I2C_Write_16(SW6306_address, 0x11B, 0X30); // 小电流使能
+        I2C_Write_16(SW6306_address, 0x1FF, 0x0);  // 切换回 0-100 写使能
+        I2C_Write(SW6306_address, 0x28, 0X0);
+        I2C_Write(SW6306_address, 0x28, 0X2); // 此bit先写0，之后再写1，小电流模式定时重新打开
+    }
+}
+void Small_A_OFF()
+{
+    if (Small_A_State() == 1)
+        I2C_Write(SW6306_address, 0x28, 0X0); // 要退出小电流模式，此bit写0
+}
 
-// // 充放电状态
-// uint8_t batzhuangtai()
-// {
-//     uint8_t svalue;
-//     svalue = I2C_Read(SW6208_address, 0x0C);
-//     svalue = svalue >> 6;
-//     return svalue;
-// }
-
-// /**
-//  * @brief 开启或退出小电流   0X10    4  写1
-//  */
-// void kqxdl()
-// {
-//     // uint8_t svalue;
-//     // svalue = I2C_Read(SW6208_address, 0x2E);
-//     // svalue = svalue & 0X10;
-//     // if (
-//     I2C_Write(SW6208_address, 0x2E, 0X10) == 0; // 写1开启或退出小电流
-//     // {
-//     //     Serial.print("kaiqichenggong!");
-//     // }
-//     // else
-//     // {
-//     //     Serial.print("kaiqishibai");
-//     // }
-// }
-// /**
-//  * @brief 0x33: 小电流充电配置
-//  */
-// void I2Csmall_A_ON()
-// {
-//     I2C_Write(SW6208_address, 0x33, 0X3) == 0; // 小电流使能
-// }
-// void I2Csmall_A_OFF()
-// {
-//     I2C_Write(SW6208_address, 0x33, 0X2) == 0; // 小电流不使能
-// }
 // /**
 //  * @brief 小电流状态
 //  *
@@ -402,30 +362,12 @@ uint8_t Small_A_State()
 //     svalue = svalue & 0X1;
 //     return svalue;
 // }
-// /**
-//  * @brief A1口触发插入事件
-//  *
-//  */
-// void A1shijian()
-// {
-//     uint8_t svalue;
-//     svalue = I2C_Read(SW6208_address, 0x19);
-//     svalue = svalue & 0X1;
-//     if (I2C_Write(SW6208_address, 0x19, svalue) == 0)
-//     {
-//         Serial.print("A2yes");
-//     }
-//     else
-//     {
-//         Serial.print("A2NO");
-//     }
-// }
+
 // // 本设备没有A2物理接口，给小电流开关调用
 // void A2_ON() // A2口触发插入事件
 // {
 //     I2C_Write(SW6208_address, 0x19, 0X4) == 0;
 // }
-
 // void A2_OFF() // A2口触发拔出事件
 // {
 //     I2C_Write(SW6208_address, 0x19, 0X8) == 0;
@@ -436,74 +378,6 @@ uint8_t Small_A_State()
 // {
 //     I2C_Write(SW6208_address, 0x18, 0X10) == 0;
 // }
-
-// // void sw6208push(float *battery_V, float *sys_outinv, float *ic_temp, float *ntc_v, float *battery_A, float *sys_w,float *bat_m, float *bat_ntc,uint16_t *sys, uint16_t *A_C, uint16_t *bat_per)
-// // {
-// //     Serial.print("batv:");
-// //     *battery_V = batteryV(); // 电池电压
-// //     //Serial.println(*battery_V, 4);
-// //     delay(10);
-// //     Serial.print("sysstade:");
-// //     sysstate(&sys, &A_C); // 充电电流 放电电流
-// //     if (sys == 4)         // 放电
-// //     {
-// //         Serial.print("outa:");
-// //         *battery_A = battery_outA();
-// //         Serial.println(*battery_A, 4);
-// //     }
-// //     if (sys == 8) // 充电
-// //     {
-// //         Serial.print("ina:");
-// //         *battery_A = battery_inA();
-// //         Serial.println(*battery_A, 8);
-// //     }
-// //     else
-// //         *battery_A = battery_outA();
-// //     Serial.println(sys);
-// //     Serial.println(A_C);
-// //     delay(10);
-// //     Serial.print("outinv:");
-// //     *sys_outinv = battery_outinV(); // 输入输出电压
-// //     Serial.println(*sys_outinv);
-// //     Serial.print("ictemp:");
-// //     *ic_temp = battery_ictemp(); // ic温度
-// //     Serial.println(*ic_temp);
-// //     delay(10);
-// //     Serial.print("W:");
-// //     *sys_w = sys_outinv * battery_A;
-// //     Serial.println("batper:");
-// //     *bat_per = battery_per();
-// //     Serial.println("batm:");
-// //     *bat_m = battery_volume() * bat_per / 100;
-// //     Serial.println("ntc:");
-// //     *bat_ntc = battery_ntcV(); // 电池温度
-// // }
-
-// // uint8_t IICread(uint8_t date1)
-// // {
-// //     uint8_t t = 200;
-// //     uint8_t ret = 0;
-// //     Wire.beginTransmission(SW6208_address); // 0x78
-// //     // Serial.println(SW6208_address, HEX);
-// //     Wire.write(0x13); // 寄存器地址
-// //     // Wire.write(0x00);
-// //     ret = Wire.endTransmission(false);
-// //     Wire.requestFrom(SW6208_address, MAX_AES_BUFFER_SIZE); // MAX_AES_BUFFER_SIZE=1
-// //     date1 = 0;
-// //     while (!Wire.available())
-// //     {
-// //         t--;
-// //         delay(1);
-// //         if (t == 0)
-// //         {
-// //             return 1;
-// //         }
-// //     }
-// //     date1 = Wire.read();
-// //     Serial.print(date1, HEX);
-// //     Serial.println();
-// //     return ret;
-// // }
 
 /**
  * @brief  C2(L) 控制L口输入功率30w，关闭输出   Loop循环调用
@@ -523,26 +397,54 @@ uint8_t Small_A_State()
  * @param  REG0x1D: 端口状态指示   C2 口的在线状态指示  0：不在线   1：在线
  * @param  REG0x1D: bit:0    0：不在线   1：在线
  *
- * 
- * @param REG0x50: C 口配置及输入快充控制   
+ *
+ * @param REG0x50: C 口配置及输入快充控制
  * @param bit:2-0  强制申请快充电压档位   0：5V   1：9V   3：12V  2：10V（若没有 10V 档位，则申请 20V） 4：15V    5.6.7  20V
- * 
+ *
  *
  */
-void L_State()
+// void L_State()
+// {
+//     if (I2C_Read(SW6306_address, 0x1D) & 0x1 == 1) // C2(L)在线状态
+//     {
+//         I2C_Write(SW6306_address, 0x40, 0x84); // 输入 输出功率IIC控制  8高位输出   4低位输入
+//                                                // if (SYS_State() == 2)                      // 充电
+//         I2C_Write(SW6306_address, 0x45, 0x14); // 输入设置20w
+//         I2C_Write(SW6306_address, 0x50, 0x1);  // 1：9V
+//                                                // if (SYS_State() == 1)                      // 放电
+//         I2C_Write(SW6306_address, 0x4F, 0x14); // 输出设置20w  //关闭输出  //通路管控制会自动清零，会短暂放电
+//         // 以上设置影响所有口    L口不可与其他口同时使用
+//     }
+//     else
+//     {
+//         I2C_Write(SW6306_address, 0x40, 0x0); // 不强制控制最大输入输出功率
+//     }
+// }
+void SYS_W_SetMax() // 设置100W最大充放
 {
-    if (I2C_Read(SW6306_address, 0x1D) & 0x1 == 1) // C2(L)在线状态
+    if (I2C_Read(SW6306_address, 0x45) != 0x64 || I2C_Read(SW6306_address, 0x4F) != 0x64) //
     {
-        I2C_Write(SW6306_address, 0x40, 0x84);     // 输入 输出功率IIC控制  8高位输出   4低位输入
-        // if (SYS_State() == 2)                      // 充电
-            I2C_Write(SW6306_address, 0x45, 0x14); // 输入设置20w
-            I2C_Write(SW6306_address, 0x50, 0x1); // 1：9V
-        // if (SYS_State() == 1)                      // 放电
-            I2C_Write(SW6306_address, 0x4F, 0x14); // 输出设置20w  //关闭输出  //通路管控制会自动清零，会短暂放电
-        // 以上设置影响所有口    L口不可与其他口同时使用
+        I2C_Write(SW6306_address, 0x40, 0x84); // 输入 输出功率IIC控制  8高位输出   4低位输入
+        I2C_Write(SW6306_address, 0x45, 0x64); // 输入 设置100w
+        I2C_Write(SW6306_address, 0x4F, 0x64); // 输出 设置100w
     }
-    else
-    {
-        I2C_Write(SW6306_address, 0x40, 0x0); // 不强制控制最大输入输出功率
-    }
+}
+
+/**
+ * @brief  REG0x11D: 插入拔出检测配置5   C2口模式设置  bit: 7
+ * @param  0：C2口配置为C口模式
+ * @param  1：C2口配置为B/L口模式
+ * @return
+ */
+void C2_to_L()
+{
+    Serial.println("C2_to_L  81   80   80");
+    I2C_Write_100_156();                                 // 100-156 寄存器写使能
+    Serial.println(I2C_Read(SW6306_address, 0x24), HEX); // 81
+
+    I2C_Write_16(SW6306_address, 0x11D, 0x80);            // C2口配置为B/L口模式
+    Serial.println(I2C_Read(SW6306_address, 0x11D), HEX); // 80
+
+    I2C_Write_16(SW6306_address, 0x1FF, 0x0);            // 切换回 0-100 写使能
+    Serial.println(I2C_Read(SW6306_address, 0x24), HEX); // 80
 }

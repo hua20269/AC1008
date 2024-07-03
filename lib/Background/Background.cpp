@@ -293,7 +293,7 @@ void lcdlayout01(uint16_t bat_circ, uint8_t bat_per, float battery_V, float ic_t
     /**
      * 大电池图标
      */
-    sprite1.fillRoundRect(208 - 6, 33, 20, 4, 3, TFT_GREEN); // 电池框
+    sprite1.fillRoundRect(208 - 6, 33, 20, 4, 2, TFT_GREEN); // 电池框
     sprite1.drawRoundRect(198 - 6, 36, 40, 66, 7, TFT_GREEN);
     sprite1.drawRoundRect(199 - 6, 37, 38, 64, 7, TFT_GREEN);
     switch (bat)
