@@ -1,11 +1,11 @@
 #include <eeprom32.h>
 // 初始化存储
-void eeprominit()
+void EEPROMinit()
 {
     EEPROM.begin(EEPROM_SIZE);
 }
 
-void eebat_circ(uint16_t bat_per)
+void EE_CycleCount(uint16_t bat_per)
 {
     uint16_t xh;
     if (bat_per >= 80)
@@ -49,7 +49,7 @@ void eebat_circ(uint16_t bat_per)
  *
  * @param data 自动息屏时间  最大 255s
  */
-void eepromLcdSleep(uint8_t data)
+void EE_LcdSleep(uint8_t data)
 
 {
     EEPROM.write(5, data);
@@ -63,7 +63,7 @@ void eepromLcdSleep(uint8_t data)
  *
  * @param data 蓝牙的休眠时间
  */
-void eepromwrite(uint16_t data)
+void EE_BLETimeWrite(uint16_t data)
 
 {
     EEPROM.write(6, data >> 8);
@@ -78,7 +78,7 @@ void eepromwrite(uint16_t data)
  *
  * @return uint16_t 返回蓝牙的休眠时间
  */
-uint16_t eepromread()
+uint16_t EE_BLETimeRead()
 {
     uint16_t data = 0;
     data = EEPROM.read(6) << 8;
@@ -91,7 +91,7 @@ uint16_t eepromread()
  *
  * @param data 屏幕方向
  */
-void eepromRotationWrite(uint8_t data)
+void EE_ScreenDirection(uint8_t data)
 
 {
     EEPROM.write(3, data);
@@ -105,7 +105,7 @@ void eepromRotationWrite(uint8_t data)
  *
  * @param data 主题编号
  */
-void eepromThemWrite(uint8_t data)
+void EE_Them(uint8_t data)
 
 {
     EEPROM.write(4, data);
@@ -119,7 +119,7 @@ void eepromThemWrite(uint8_t data)
  *
  * @param data    小电流状态
  */
-void eepromsmallaWrite(uint8_t data)
+void EE_SmallA(uint8_t data)
 
 {
     EEPROM.write(8, data);
@@ -133,7 +133,7 @@ void eepromsmallaWrite(uint8_t data)
  *
  * @param data 4位的十进制数密码
  */
-void eepromwritepass(uint16_t data)
+void EE_PassWrite(uint16_t data)
 {
     EEPROM.write(9, data >> 8);
     delay(2);
@@ -146,7 +146,7 @@ void eepromwritepass(uint16_t data)
  * @brief 读取密码的值
  *
  */
-uint16_t eepromreadpass()
+uint16_t EE_PassRead()
 {
     uint16_t data = 0;
     data = EEPROM.read(9) << 8;
@@ -159,26 +159,36 @@ uint16_t eepromreadpass()
  *
  * @param data   记录 1    OTA升级
  */
-void eepromOTA(uint8_t data) // OTA    eeprom: 11
+void EE_OTA(uint8_t data) // OTA    eeprom: 11
 {
     EEPROM.write(11, data);
     delay(3);
     EEPROM.commit();
     delay(3);
 }
-
-
 /**
  * @brief 地址12：写1 锁死 // 废掉ESP32
  *
- * @param data  
+ * @param data
  */
-void eepromIDLock(uint8_t data) // 写1 锁死 // 废掉ESP32    eeprom: 12
+void EE_IDLock(uint8_t data) // 写1 锁死 // 废掉ESP32    eeprom: 12
 {
     EEPROM.write(12, data);
     delay(3);
     EEPROM.commit();
     delay(3);
 }
-
-
+/**
+ * @brief // eeprom: 13 IO4引脚按键控制
+ *
+ * @param data
+ */
+void EE_IO4()
+{
+    if (EEPROM.read(13) == 0)
+        EEPROM.write(13, 1);
+    else if (EEPROM.read(13) == 1)
+        EEPROM.write(13, 0);
+    EEPROM.commit();
+    delay(3);
+}

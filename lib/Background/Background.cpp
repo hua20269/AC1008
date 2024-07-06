@@ -128,7 +128,7 @@ void PowerLOGO() // 开机LOGO
  * @param battemp 电池温度
  */
 // lcdlayout01(bat_m, bat_per, bat_v, mcu_temp, sys_v, sys_a, ntc_temp, sys_state, ac_state); // 显示相关参数
-void lcdlayout01(uint16_t bat_circ, uint8_t bat_per, float battery_V, float ic_temp, float sys_outinv, float battery_A, float bat_ntc, uint8_t sys, uint8_t A_C)
+void lcdlayout01(uint16_t bat_circ, uint8_t bat_per, float battery_V, float ic_temp, float sys_outinv, float battery_A, float bat_ntc, uint8_t sys, uint8_t A_C, uint8_t bt_icon)
 {
     char num_n[10];
     float a = 0, b = 0;
@@ -224,23 +224,23 @@ void lcdlayout01(uint16_t bat_circ, uint8_t bat_per, float battery_V, float ic_t
     // 温度值写入sprite1 &lcd
     // 芯片 温度 值写入sprite1 &lcd
     sprintf(num_n, "%.1f℃", ic_temp);
-    sprite1.drawString(num_n, 27, 4); // 实时信息显示
+    sprite1.drawString(num_n, 27, 4);
 
     // 电池电压值写入sprite1 &lcd
     sprintf(num_n, "%.1fV", battery_V);
-    sprite1.drawString(num_n, 27, 31); // 实时信息显示
+    sprite1.drawString(num_n, 27, 31);
 
     // 系统电压
     sprintf(num_n, "%.1fV", sys_outinv);
-    sprite1.drawString(num_n, 27, 58); // 实时信息显示
+    sprite1.drawString(num_n, 27, 58);
 
     // 充放电流
     sprintf(num_n, "%.2fA", battery_A);
-    sprite1.drawString(num_n, 27, 85); // 实时信息显示
+    sprite1.drawString(num_n, 27, 85);
 
     // 功率
     sprintf(num_n, "%.1fw", sys_outinv * battery_A);
-    sprite1.drawString(num_n, 27, 115); // 实时信息显示
+    sprite1.drawString(num_n, 27, 115);
 
     /**
      * 第四列实时数据
@@ -268,6 +268,10 @@ void lcdlayout01(uint16_t bat_circ, uint8_t bat_per, float battery_V, float ic_t
     // 循环次数
     sprintf(num_n, "%d", bat_circ);
     sprite1.drawString(num_n, 117, 115); // 循环次数
+    if (bt_icon)                         // 蓝牙
+    {
+        sprite1.drawPng(imgbleimg24, sizeof(imgbleimg24), 156, 112); // 蓝牙图标
+    }
 
     /**
      * 右侧电池部分
@@ -1205,78 +1209,176 @@ void BackgroundTime5(float battery_V, float sys_outinv, uint8_t sys, uint8_t A_C
     sprite1.deleteSprite();   // 删除精灵
     sprite1.unloadFont();     // 释放加载字体
 }
+//--------------------------------------------------------------------------------以下为BQ40Z50主题-----------------------------------------------
+//--------------------------------------------------------------------------------以下为BQ40Z50主题-----------------------------------------------
+//--------------------------------------------------------------------------------以下为BQ40Z50主题-----------------------------------------------
+//--------------------------------------------------------------------------------以下为BQ40Z50主题-----------------------------------------------
+//--------------------------------------------------------------------------------以下为BQ40Z50主题-----------------------------------------------
+//--------------------------------------------------------------------------------以下为BQ40Z50主题-----------------------------------------------
+//--------------------------------------------------------------------------------以下为BQ40Z50主题-----------------------------------------------
 /**
- * 眼
+ * @brief BQ40Z50 主题1  经典主题
+ * @param bq_battemp = BQ_Temperature();             // 电池 温度
+ * @param bq_batv = BQ_Voltage();                    // 电池包 总电压
+ * @param bq_bata = BQ_Current();                    // 电池 电流大小
+ * @param bq_batv4 = BQ_CellVoltage4();              // 电压包 电池4电压
+ * @param bq_batv3 = BQ_CellVoltage3();              // 电压包 电池3电压
+ * @param bq_batv2 = BQ_CellVoltage2();              // 电压包 电池2电压
+ * @param bq_batv1 = BQ_CellVoltage1();              // 电压包 电池1电压
+ * @param bq_chargetime = BQ_AtRateTimeToFull();     // 电池组充满电的剩余时间
+ * @param bq_dischargetime = BQ_AtRateTimeToEmpty(); // 电池组完全放电的剩余时间。
+ * @param bq_batper = BQ_RelativeStateOfCharge();    // 电池容量百分比 （根据充满电预测最大容量）
+ * @param bq_batm = BQ_RemainingCapacity();          // 预测的剩余电池容量
+ * @param bq_capacity = BQ_FullChargeCapacity();     // 充满电时预测的电池容量 (当前健康 最大电池的容量)
+ * @param bq_cyclecount = BQ_CycleCount();           // 经历的放电循环次数
  */
-void Backgroundyan(uint16_t pngindex)
+void BQScreenLayout1(float bq_battemp, float bq_batv, float bq_bata, float bq_batv4, float bq_batv3, float bq_batv2, float bq_batv1, uint16_t bq_chargetime, uint16_t bq_dischargetime,
+                     uint8_t bq_batper, uint16_t bq_batm, uint16_t bq_capacity, uint16_t bq_cyclecount)
 {
-    sprite1.createSprite(240, 135); // 创建画布大小
-    sprite1.fillScreen(TFT_BLACK);  // 设置背景颜色
-    switch (pngindex)
+
+    char num_n[10];
+    float a = 0, b = 0;
+    int bat = 0;
+    if (bq_batper > 100)
+        bq_batper = 100;
+    if (bq_batper < 0)
+        bq_batper = 0;
+
+    if (bq_batper >= 0 && bq_batper < 15)
+        bat = 7;
+    if (bq_batper >= 15 && bq_batper < 30)
+        bat = 6;
+    if (bq_batper >= 30 && bq_batper < 45)
+        bat = 5;
+    if (bq_batper >= 45 && bq_batper < 60)
+        bat = 4;
+    if (bq_batper >= 60 && bq_batper < 75)
+        bat = 3;
+    if (bq_batper >= 75 && bq_batper < 90)
+        bat = 2;
+    if (bq_batper >= 90 && bq_batper <= 100)
+        bat = 1;
+    sprite1.createSprite(240, 135); // 设置精灵画布大小    //横屏  240  135
+    sprite1.fillScreen(TFT_BLACK);  // 背景填充
+
+    // 左侧 方块
+    sprite1.fillRoundRect(0, 0, 24, 24, 5, TFT_CYAN);
+    sprite1.fillRoundRect(0, 27, 24, 24, 5, TFT_YELLOW);
+    sprite1.fillRoundRect(0, 54, 24, 24, 5, TFT_PINK);
+    sprite1.fillRoundRect(0, 81, 24, 24, 5, TFT_YELLOW);
+    sprite1.fillRoundRect(0, 111, 24, 24, 5, TFT_PINK);
+    // 右侧 方块
+    sprite1.fillRoundRect(240 - 24, 0, 24, 24, 5, TFT_PINK);
+    sprite1.fillRoundRect(240 - 24, 27, 24, 24, 5, TFT_PINK);
+    sprite1.fillRoundRect(240 - 24, 54, 24, 24, 5, TFT_YELLOW);
+    sprite1.fillRoundRect(240 - 24, 81, 24, 24, 5, TFT_PINK);
+    sprite1.fillRoundRect(240 - 24, 111, 24, 24, 5, TFT_CYAN);
+    /**
+     * 左侧 列
+     */ 
+    sprite1.setTextDatum(TL_DATUM); // 字体左上角为原点
+    sprite1.loadFont(KaiTi22);
+    sprite1.setTextColor(TFT_BLACK);
+    sprite1.drawString("温", 1, 1);
+    sprite1.drawString("池", 1, 28);
+    sprite1.drawString("流", 1, 55);
+    sprite1.drawString("功", 1, 82);
+    sprite1.drawString("容", 1, 112);
+    // 左侧实时数据
+    sprite1.loadFont(JianTi20);
+    sprite1.setTextColor(TFT_WHITE);
+    sprintf(num_n, "%.2f℃", bq_battemp); // 温度
+    sprite1.drawString(num_n, 27, 4);
+    sprintf(num_n, "%.2fV", bq_batv); // 总电压
+    sprite1.drawString(num_n, 27, 31);
+    sprintf(num_n, "%.2fA", bq_bata); // 电流
+    sprite1.drawString(num_n, 27, 58);
+    sprintf(num_n, "%.2fw", bq_batv * bq_bata); // 功率
+    sprite1.drawString(num_n, 27, 85);
+    sprintf(num_n, "%dmA", bq_batm); // 实时容量
+    sprite1.drawString(num_n, 27, 115);
+    /**
+     * 右侧 列
+     */
+    sprite1.setTextDatum(TR_DATUM); // 字体右上角为原点
+    sprite1.loadFont(KaiTi22);
+    sprite1.setTextColor(TFT_BLACK);
+    sprite1.drawString("压", 239, 1);
+    sprite1.drawString("压", 239, 28);
+    sprite1.drawString("压", 239, 55);
+    sprite1.drawString("压", 239, 82);
+    sprite1.drawString("容", 239, 112);
+    // 右侧实时数据
+    sprite1.loadFont(JianTi20);
+    sprite1.setTextColor(TFT_WHITE);
+    sprintf(num_n, "%.2fV", bq_batv1);
+    sprite1.drawString(num_n, 213, 4);
+    sprintf(num_n, "%.2fV", bq_batv2);
+    sprite1.drawString(num_n, 213, 31);
+    sprintf(num_n, "%.2fV", bq_batv3);
+    sprite1.drawString(num_n, 213, 58);
+    sprintf(num_n, "%.2fV", bq_batv4);
+    sprite1.drawString(num_n, 213, 85);
+    sprintf(num_n, "%dmA", bq_capacity);
+    sprite1.drawString(num_n, 213, 115);
+
+    /**
+     * 中间电池部分
+     */
+    sprite1.loadFont(JianTi26);
+    sprite1.setTextColor(TFT_WHITE);
+    sprite1.setTextDatum(CC_DATUM); // 字体中间中心为原点
+    // 电量百分比   右上角
+    sprintf(num_n, "%d", bq_batper); // 传值
+    if (bq_batper < 10)
+    { // 小于10   一个字符右移一点   改为红色字体
+        sprite1.setTextColor(TFT_RED);
+        sprite1.drawString(num_n, 120, 17); // 电量百分比红色显示
+    }
+    else if (bq_batper == 100)
+    {
+        sprite1.drawString(num_n, 120, 17);
+    }
+    else
+    {
+        sprite1.drawString(num_n, 120, 17);
+    }
+    /**
+     * 大电池图标
+     */
+    sprite1.fillRoundRect(120 - 10, 33, 20, 4, 2, TFT_GREEN);  // 电池框
+    sprite1.drawRoundRect(120 - 20, 36, 40, 66, 7, TFT_GREEN); // 外框
+    sprite1.drawRoundRect(120 - 19, 37, 38, 64, 7, TFT_GREEN); // 内框
+    switch (bat)
     {
     case 1:
-        sprite1.drawPng(yan1, sizeof(yan1), 0, 0);
-        break;
+        sprite1.fillRoundRect(120 - 17, 39, 34, 8, 2, green3);
     case 2:
-        sprite1.drawPng(yan2, sizeof(yan2), 0, 0);
-        break;
+        sprite1.fillRoundRect(120 - 17, 48, 34, 8, 2, green2);
     case 3:
-        sprite1.drawPng(yan3, sizeof(yan3), 0, 0);
-        break;
+        sprite1.fillRoundRect(120 - 17, 57, 34, 8, 2, green1);
     case 4:
-        sprite1.drawPng(yan4, sizeof(yan4), 0, 0);
-        break;
+        sprite1.fillRoundRect(120 - 17, 66, 34, 8, 2, TFT_GOLD);
     case 5:
-        sprite1.drawPng(yan5, sizeof(yan5), 0, 0);
-        break;
+        sprite1.fillRoundRect(120 - 17, 75, 34, 8, 2, TFT_MAGENTA);
     case 6:
-        sprite1.drawPng(yan6, sizeof(yan6), 0, 0);
-        break;
+        sprite1.fillRoundRect(120 - 17, 84, 34, 8, 2, TFT_DARKGREY);
     case 7:
-        sprite1.drawPng(yan7, sizeof(yan7), 0, 0);
-        break;
-    case 8:
-        sprite1.drawPng(yan8, sizeof(yan8), 0, 0);
-        break;
-    case 9:
-        sprite1.drawPng(yan9, sizeof(yan9), 0, 0);
-        break;
-    case 10:
-        sprite1.drawPng(yan10, sizeof(yan10), 0, 0);
-        break;
-    case 11:
-        sprite1.drawPng(yan11, sizeof(yan11), 0, 0);
-        break;
-    case 12:
-        sprite1.drawPng(yan12, sizeof(yan12), 0, 0);
-        break;
-    case 13:
-        sprite1.drawPng(yan13, sizeof(yan13), 0, 0);
-        break;
-    case 14:
-        sprite1.drawPng(yan14, sizeof(yan14), 0, 0);
-        break;
-    case 15:
-        sprite1.drawPng(yan15, sizeof(yan15), 0, 0);
-        break;
-    case 16:
-        sprite1.drawPng(yan16, sizeof(yan16), 0, 0);
-        break;
-    case 17:
-        sprite1.drawPng(yan17, sizeof(yan17), 0, 0);
-        break;
-    case 18:
-        sprite1.drawPng(yan18, sizeof(yan18), 0, 0);
-        break;
-    case 19:
-        sprite1.drawPng(yan19, sizeof(yan19), 0, 0);
+        sprite1.fillRoundRect(120 - 17, 93, 34, 8, 2, TFT_RED);
         break;
     default:
         break;
     }
-    sprite1.pushSprite(0, 0); // 显示在画布1上
-    // sprite1.releasePngMemory();
-    sprite1.deleteSprite(); // 删除精灵
+    sprintf(num_n, "%d", bq_chargetime);
+    sprite1.drawString(num_n, 120, 124);
+    //-----------------------------------------------------------------------
+    // sprite1.drawLine(0, 108, 240, 108, TFT_PINK); // 下方分割直线  两点确定一条直线，两点坐标
+    sprite1.drawFastHLine(0, 108, 240, TFT_PINK); // 下方分割横线  坐标  ,宽度
+    // sprite1.drawFastVLine(88, 0, 135, TFT_PINK);  // 分割竖线  坐标  ,高度
+
+    sprite1.pushSprite(0, 0); // 显示在led画布上
+    sprite1.deleteSprite();   // 删除精灵
+    sprite1.unloadFont();     // 释放字库
 }
 
 /**
@@ -1313,8 +1415,31 @@ void Backgroundyan(uint16_t pngindex)
  *
  *
  *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
-
+//---------------------------------------------------------------------------------以下为 OTA 等临时页面---------------------------------------------------
+//---------------------------------------------------------------------------------以下为 OTA 等临时页面---------------------------------------------------
+//---------------------------------------------------------------------------------以下为 OTA 等临时页面---------------------------------------------------
+//---------------------------------------------------------------------------------以下为 OTA 等临时页面---------------------------------------------------
+//---------------------------------------------------------------------------------以下为 OTA 等临时页面---------------------------------------------------
+//---------------------------------------------------------------------------------以下为 OTA 等临时页面---------------------------------------------------
 // 非正当获得设备采取措施
 void lost_Page()
 {
@@ -1328,6 +1453,7 @@ void lost_Page()
     sprite1.drawString("Device locked", 120, 50);
     sprite1.drawString("The AC is closed.", 120, 80);
 
+    vTaskDelay(10000);        //
     sprite1.pushSprite(0, 0); // 显示在画布1上
     sprite1.deleteSprite();   // 删除精灵
     sprite1.unloadFont();     // 释放加载字体

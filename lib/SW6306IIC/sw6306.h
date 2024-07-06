@@ -11,7 +11,7 @@ typedef unsigned short int uint16_t;
 #endif
 
 // define MAX_AES_BUFFER_SIZ 1
-//  ntc相关参数
+// ntc相关参数
 #define BX 3435 // B值
 #define T25 298.15
 #define R25 10000
@@ -20,9 +20,9 @@ typedef unsigned short int uint16_t;
 typedef unsigned int uint32_t;
 #endif
 
-uint8_t I2C_Write(uint8_t mcuAddr, uint8_t regAddr, uint8_t senddate); // 写数据
-uint16_t I2C_Read(uint8_t mcuAddr, uint16_t regAddr);                  // 读数据
-void I2C_Write_0_100();                                                // 0-100 寄存器写使能
+// uint8_t I2C_Write(uint8_t mcuAddr, uint8_t regAddr, uint8_t senddate); // 写数据
+// uint16_t I2C_Read(uint8_t mcuAddr, uint16_t regAddr);                  // 读数据
+void I2C_Write_0_100(); // 0-100 寄存器写使能
 
 // uint8_t I2C_Write_100_156(); // 100-156 寄存器写使能
 // uint16_t ADC_Data();         // SW6306_ADC

@@ -47,26 +47,19 @@ eeprom可用地址为0~4096
 
 */
 
-void eeprominit(); // 初始化存储
+void EEPROMinit(); // 初始化存储
 
-void eebat_circ(uint16_t bat_per); // 判断循环次数  eeprom: 2   容量是否高于80    容量是否低于20
-
-void eepromLcdSleep(uint8_t data); // 写入屏幕自动息屏时间   eeprom: 5
-
-void eepromwrite(uint16_t data); // 写入蓝牙打开的时间   eeprom: 6, 7
-uint16_t eepromread();           // 读取蓝牙打开的时间
-
-void eepromRotationWrite(uint8_t data); // 写入屏幕方向   eeprom: 3
-
-void eepromThemWrite(uint8_t data); // 写入主题号   eeprom: 4
-
-void eepromsmallaWrite(uint8_t data); // 写小电流设置开关   eeprom: 8
-
-void eepromwritepass(uint16_t data); // 写入四位的十进制数密码到eeprom的9和10地址  地址9为高八位 地址10为低八位
-uint16_t eepromreadpass();           // 读取密码的值
-
-void eepromOTA(uint8_t data); // OTA    eeprom: 11
-
-void eepromIDLock(uint8_t data); // 写1 锁死 // 废掉ESP32  或关闭所有输出口    eeprom: 12
+void EE_CycleCount(uint16_t bat_per);  // eeprom: 2 判断循环次数    容量是否高于80    容量是否低于20
+void EE_LcdSleep(uint8_t data);        // eeprom: 5 写入屏幕自动息屏时间
+void EE_BLETimeWrite(uint16_t data);   // eeprom: 6,7  6高八位  7低八位   写入蓝牙打开的时间
+uint16_t EE_BLETimeRead();             // 读取蓝牙打开的时间
+void EE_ScreenDirection(uint8_t data); // eeprom: 3 写入屏幕方向
+void EE_Them(uint8_t data);            // eeprom: 4 写入主题号   eeprom: 4
+void EE_SmallA(uint8_t data);          // eeprom: 8 写小电流设置开关
+void EE_PassWrite(uint16_t data);      // eeprom: 9,10 高八位 10低八位  写入四位的十进制数密码
+uint16_t EE_PassRead();                // 读取密码的值
+void EE_OTA(uint8_t data);             // eeprom: 11 OTA
+void EE_IDLock(uint8_t data);          // eeprom: 12 写1关闭所有输出口
+void EE_IO4();             // eeprom: 13 IO4引脚按键控制
 
 #endif

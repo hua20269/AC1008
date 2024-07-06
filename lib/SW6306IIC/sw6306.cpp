@@ -455,9 +455,9 @@ void C2_to_L()
 }
 /**
  * @brief  REG0x119 : 插入拔出检测配置2   空载时间设置
- * @param  7-6 多口空载时间设置     1：8s (min)
- * @param  5-4 无线充空载时间设置   1：16s (min)
- * @param  2-0 单口空载时间设置     1：8s (min)
+ * @param  bit: 7-6 多口空载时间设置     1：8s (min)
+ * @param  bit: 5-4 无线充空载时间设置   1：16s (min)
+ * @param  bit: 2-0 单口空载时间设置     1：8s (min)
  * @param  在setup中执行一次
  */
 void Easy_Load()
