@@ -14,7 +14,7 @@
 
 #define BUTTON_PIN_BITMASK 0x0010 // GPIOs 4    io4 按钮
 
-BleKeyboard bleKeyboard("AC1008M", "OCRC", 50); // 蓝牙
+BleKeyboard bleKeyboard("AC1008", "OCRC", 50); // 蓝牙
 Ticker ticker1;                                 // 计时器
 OneButton button(4, true);                      // IO4按键
 
@@ -280,9 +280,9 @@ void loop()
                                     break;
                                 }
                                 jsonBuffer1["chipid"] = ESP.getEfuseMac() & 0X0000FFFFFFFFFFFF;
-                                jsonBuffer1["name"] = "AC1008M";              // 设备名称
-                                jsonBuffer1["software"] = "v3.0";             // 固件版本
-                                jsonBuffer1["hardware"] = "v3.3";             // 硬件版本
+                                jsonBuffer1["name"] = "AC1008";              // 设备名称
+                                jsonBuffer1["software"] = "v4.0";             // 固件版本
+                                jsonBuffer1["hardware"] = "v3.2";             // 硬件版本
                                 jsonBuffer1["bat_cir"] = cyclecount;          // 循环次数
                                 jsonBuffer1["bat_V"] = String(bat_v, 3);      // 电池电压
                                 jsonBuffer1["bat_A"] = String(bat_a, 3);      // 电流

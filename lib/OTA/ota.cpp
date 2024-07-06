@@ -7,7 +7,7 @@
 // int cur, total;
 int a, b;
 // 固件链接，在巴法云控制台复制、粘贴到这里即可
-String upUrl = "http://bin.bemfa.com/b/3BcNjdmOTA1MGU4ZDY3YzhjODU0ZTc0NGU3ZjFhZDNjZWE=AABCL6208.bin";
+String upUrl = "http://bin.bemfa.com/b/3BcYWMzNDRjODg3OGFiNWQwMWNlNDFkMjNiMmRjZjRmNzQ=AC1008.bin";
 
 // 当升级开始时，打印日志
 void update_started()
