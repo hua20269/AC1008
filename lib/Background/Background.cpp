@@ -270,7 +270,7 @@ void lcdlayout01(uint16_t bat_circ, uint8_t bat_per, float battery_V, float ic_t
     sprite1.drawString(num_n, 117, 115); // 循环次数
     if (bt_icon)                         // 蓝牙
     {
-        sprite1.drawPng(imgbleimg24, sizeof(imgbleimg24), 156, 112); // 蓝牙图标
+        sprite1.drawPng(imgbleimg24, sizeof(imgbleimg24), 156, 111); // 蓝牙图标
     }
 
     /**
