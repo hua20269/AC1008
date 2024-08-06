@@ -421,7 +421,6 @@ void Small_A_OFF()
 //     }
 // }
 
-
 //-------------------------------------------------------------------------SW6306init初始化---------------------
 //-------------------------------------------------------------------------SW6306init初始化---------------------
 //-------------------------------------------------------------------------SW6306init初始化---------------------
@@ -435,49 +434,36 @@ void Small_A_OFF()
 //-------------------------------------------------------------------------SW6306init初始化---------------------
 //-------------------------------------------------------------------------SW6306init初始化---------------------
 
-
-/**
- * @brief  REG0x40:  0x84  输入 输出功率IIC控制  8高位输出   4低位输入
- * @param  // 设置100W最大充放
- * @param  // 在setup中执行一次
- */
-void SYS_W_SetMax()
+void SW6306init() // sw6306初始化
 {
-    if (I2C_Read(SW6306_address, 0x45) != 0x64 || I2C_Read(SW6306_address, 0x4F) != 0x64) //
+    // if (I2C_Read(SW6306_address, 0x45) != 0x64 || I2C_Read(SW6306_address, 0x4F) != 0x64) //
+    // {
+    //     I2C_Write(SW6306_address, 0x40, 0x84); // 输入 输出功率IIC控制  8高位输出   4低位输入
+    //     I2C_Write(SW6306_address, 0x45, 0x64); // 输入 设置100w   (1-100w)
+    //     I2C_Write(SW6306_address, 0x4F, 0x64); // 输出 设置100w   (1-100w)
+    // }
+    //-----------------------------------------------------------------------------------------------------------------------
+
+    I2C_Write_100_156(); // 100-156 寄存器写使能
+    //
+    if (I2C_Read(SW6306_address, 0x11D) != 0x80)
+        I2C_Write_16(SW6306_address, 0x11D, 0x80); // C2口配置为B/L口模式
+
+    if (I2C_Read(SW6306_address, 0x119) != 0x59)
+        I2C_Write_16(SW6306_address, 0x119, 0x59); // 单口  多口空载时间设置     1：8s (min)   无线充空载时间设置   1：16s (min)
+
+    if (I2C_Read(SW6306_address, 0x107) != 0x1C || I2C_Read(SW6306_address, 0x100) != 0x8E) // 功率设置
     {
-        I2C_Write(SW6306_address, 0x40, 0x84); // 输入 输出功率IIC控制  8高位输出   4低位输入
-        I2C_Write(SW6306_address, 0x45, 0x64); // 输入 设置100w
-        I2C_Write(SW6306_address, 0x4F, 0x64); // 输出 设置100w
+        I2C_Write_16(SW6306_address, 0x107, 0x1C); // 输入功率 设置 60W   0：27W    1：30W    2：35W    3：45W    4：60W    5：65W    6：100W    7：100W 
+        I2C_Write_16(SW6306_address, 0x100, 0x8E); // 输出功率 设置 100w  0：27W    1：30W    2：35W    3：45W    4：60W    5：65W    6：100W    7：reserved
     }
-}
-/**
- * @brief  REG0x11D: 插入拔出检测配置5   C2口模式设置  bit: 7
- * @param  0：C2口配置为C口模式
- * @param  1：C2口配置为B/L口模式
- * @param  在setup中执行一次
- */
-void C2_to_L()
-{
-    Serial.println("C2_to_L  81   80   80");
-    I2C_Write_100_156();                                 // 100-156 寄存器写使能
-    Serial.println(I2C_Read(SW6306_address, 0x24), HEX); // 81
 
-    I2C_Write_16(SW6306_address, 0x11D, 0x80);            // C2口配置为B/L口模式
-    Serial.println(I2C_Read(SW6306_address, 0x11D), HEX); // 80
+    if (I2C_Read(SW6306_address, 0x108) != 0x9C)   // 充电配置
+        I2C_Write_16(SW6306_address, 0x108, 0x9C); // 设置电池类型4.3V 电池节数4节
+    if (I2C_Read(SW6306_address, 0x104) != 0x1)
+        I2C_Write_16(SW6306_address, 0x104, 0x1); // 三元锂电池欠压门限，N为电池节数     0：3.0V*N     1：2.6V*N     2：2.7V*N    3：2.8V*N    4：2.9V*N    5：3.1V*N    6：3.2V*N    7：3.3V*N
 
-    I2C_Write_16(SW6306_address, 0x1FF, 0x0);            // 切换回 0-100 写使能
-    Serial.println(I2C_Read(SW6306_address, 0x24), HEX); // 80
-}
-/**
- * @brief  REG0x119 : 插入拔出检测配置2   空载时间设置
- * @param  bit: 7-6 多口空载时间设置     1：8s (min)
- * @param  bit: 5-4 无线充空载时间设置   1：16s (min)
- * @param  bit: 2-0 单口空载时间设置     1：8s (min)
- * @param  在setup中执行一次
- */
-void Easy_Load()
-{
-    I2C_Write_100_156();                       // 100-156 寄存器写使能
-    I2C_Write_16(SW6306_address, 0x119, 0x59); // 单口  多口空载时间设置     1：8s (min)   无线充空载时间设置   1：16s (min)
-    I2C_Write_16(SW6306_address, 0x1FF, 0x0);  // 切换回 0-100 写使能
+    //
+
+    I2C_Write_16(SW6306_address, 0x1FF, 0x0); // 切换回 0-100 写使能
 }

@@ -189,6 +189,8 @@ void EE_IO4()
         EEPROM.write(13, 1);
     else if (EEPROM.read(13) == 1)
         EEPROM.write(13, 0);
+    else // Flash 初始状态为255
+        EEPROM.write(13, 0);
     EEPROM.commit();
     delay(3);
 }

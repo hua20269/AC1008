@@ -27,7 +27,7 @@ eeprom可用地址为0~4096
 地址11：写1 OTA升级
 
 地址12：写1 锁放电，关闭所有输出口
-地址13：
+地址13：IO4引脚按键控制   按键切换40Z50界面
 地址14：
 地址15：
 地址16：
@@ -60,6 +60,6 @@ void EE_PassWrite(uint16_t data);      // eeprom: 9,10 高八位 10低八位  �
 uint16_t EE_PassRead();                // 读取密码的值
 void EE_OTA(uint8_t data);             // eeprom: 11 OTA
 void EE_IDLock(uint8_t data);          // eeprom: 12 写1关闭所有输出口
-void EE_IO4();             // eeprom: 13 IO4引脚按键控制
+void EE_IO4();                         // eeprom: 13 IO4引脚按键控制
 
 #endif

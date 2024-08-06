@@ -64,8 +64,6 @@ void Small_A_OFF();
 
 // void L_State(); // 控制L口输入功率30w，关闭输出
 
-void SYS_W_SetMax(); // 设置100W最大充放功率
-void C2_to_L();      // C2口配置为B/L口模式
-void Easy_Load();    // 空载时间设置
+void SW6306init(); // sw6306初始化
 
 #endif
