@@ -463,7 +463,7 @@ void SW6306init() // sw6306初始化
     if (I2C_Read(SW6306_address, 0x104) != 0x1)
         I2C_Write_16(SW6306_address, 0x104, 0x1); // 三元锂电池欠压门限，N为电池节数     0：3.0V*N     1：2.6V*N     2：2.7V*N    3：2.8V*N    4：2.9V*N    5：3.1V*N    6：3.2V*N    7：3.3V*N
 
-    // 
+    //
 
     I2C_Write_16(SW6306_address, 0x1FF, 0x0); // 切换回 0-100 写使能
 }
