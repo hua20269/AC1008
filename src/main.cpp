@@ -91,7 +91,7 @@ void setup()
     // sw6306 配置初始化
     I2C_Write_0_100(); // 可写100内寄存器
     SW6306init();      // sw6306初始化   // 设置100W最大充放功率   // C2口配置为B/L口模式   // 空载时间设置min:8s
-
+    BatteryMode();     // 设置电池型号  BQ_40Z50init();
     Serial.printf("main on core: ");
     Serial.println(xPortGetCoreID());
 }
@@ -118,16 +118,25 @@ void loop()
         bq_battemp = (float)BQ_Temperature() / 100; // 电池 温度
         bq_batv = (float)BQ_Voltage() / 1000;       // 电池包 总电压
         bq_bata = (float)BQ_Current() / 1000;       // 电池 电流大小
+        Serial.print("-----------------------");
+        Serial.println(bq_bata);
         bq_batv4 = (float)BQ_CellVoltage4() / 1000; // 电压包 电池4电压
         bq_batv3 = (float)BQ_CellVoltage3() / 1000; // 电压包 电池3电压
         bq_batv2 = (float)BQ_CellVoltage2() / 1000; // 电压包 电池2电压
         bq_batv1 = (float)BQ_CellVoltage1() / 1000; // 电压包 电池1电压
-        bq_chargetime = BQ_AtRateTimeToFull();      // 电池组充满电的剩余时间
-        bq_dischargetime = BQ_AtRateTimeToEmpty();  // 电池组完全放电的剩余时间。
-        bq_batper = BQ_RelativeStateOfCharge();     // 电池容量百分比 （根据充满电预测最大容量）
-        bq_batm = BQ_RemainingCapacity();           // 预测的剩余电池容量
-        bq_capacity = BQ_FullChargeCapacity();      // 充满电时预测的电池容量 (当前健康 最大电池的容量)
-        bq_cyclecount = BQ_CycleCount();            // 经历的放电循环次数
+        // bq_chargetime = BQ_AtRateTimeToFull();      // 电池组充满电的剩余时间
+        bq_chargetime = BQ_AverageTimeToFull(); // 充满电时间
+        // bq_dischargetime = BQ_AtRateTimeToEmpty();  // 电池组完全放电的剩余时间。
+        bq_dischargetime = BQ_RunTimeToEmpty(); // 当前放电率返回预测的剩余电池容量    时间单位。
+
+        bq_batper = BQ_RelativeStateOfCharge(); // 电池容量百分比 （根据充满电预测最大容量）
+        bq_batm = BQ_RemainingCapacity();       // 预测的剩余电池容量
+        bq_capacity = BQ_FullChargeCapacity();  // 充满电时预测的电池容量 (当前健康 最大电池的容量)
+        bq_cyclecount = BQ_CycleCount();        // 经历的放电循环次数
+
+        uint16_t bq_cbstatus = BQ_CBStatus();                 // 电池平衡时间信息
+        uint16_t bq_health = BQ_Health();                     // 返回健康状态
+        uint16_t bq_filteredcapacity = BQ_FilteredCapacity(); // 过滤后的容量和能量
 
         Serial.println("------------------------------------------------------------------SW6306-----------loop------------------------");
         sys_v = SYS_V();                                             // 系统电压
@@ -146,9 +155,9 @@ void loop()
         cyclecount = EEPROM.read(2) / 2;                             // 判断之后读取  电池循环次数    /2减缓次数  20-80
         PrintTime(&year, &month, &day, &hour, &minute, &sec, &week); // 获取时间数据     年 月 日 时 分 秒 周
 
-        Serial.print("MAC: "); // chipID  //MAC
-        // Serial.println(ESP.getEfuseMac() & 0X0000FFFFFFFFFFFF, HEX); // chipID  //MAC
-        Serial.println(ESP.getEfuseMac(), HEX); // chipID  //MAC
+        Serial.print("MAC: ");
+        Serial.println(ESP.getEfuseMac(), HEX);
+       
         delay(20);
     beijing0:
         switch (EEPROM.read(4)) // 读取主题号
@@ -301,14 +310,14 @@ void loop()
                                 jsonBuffer1["name"] = "AC1008";               // 设备名称
                                 jsonBuffer1["software"] = "v4.0";             // 固件版本
                                 jsonBuffer1["hardware"] = "v3.2";             // 硬件版本
-                                jsonBuffer1["bat_cir"] = cyclecount;          // 循环次数
+                                jsonBuffer1["bat_cir"] = bq_cyclecount;       // 循环次数  bq_40z50
                                 jsonBuffer1["bat_V"] = String(bat_v, 3);      // 电池电压
                                 jsonBuffer1["bat_A"] = String(bat_a, 3);      // 电流
                                 jsonBuffer1["A_C"] = ac_state;                // AC口状态
                                 jsonBuffer1["ic_temp"] = String(ic_temp, 3);  // ic温度
                                 jsonBuffer1["sys_outinv"] = String(sys_v, 3); // 系统充放电压
                                 jsonBuffer1["sys_w"] = String(sys_w, 3);      // 系统功率
-                                jsonBuffer1["sys"] = sys_state;               // 充放电状态
+                                // jsonBuffer1["sys"] = sys_state;               // 充放电状态
                                 jsonBuffer1["bat_m"] = String(bat_m, 3);      // 电池当前容量
                                 jsonBuffer1["bat_per"] = bat_per;             // 百分比bat_per
                                 jsonBuffer1["bat_ntc"] = String(ntc_temp, 3); // 电池温度
@@ -414,7 +423,7 @@ void loop()
                                 Serial.println(EEPROM.read(11));
                                 Serial.print("AC_OFF: ");
                                 Serial.println(EEPROM.read(12));
-                                Serial.print("circ: ");
+                                Serial.print("cycles: ");
                                 Serial.print(EEPROM.read(2));
                                 Serial.println("/2");
 

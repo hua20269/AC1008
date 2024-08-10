@@ -10,7 +10,7 @@ uint8_t bq40z50_word_buf[3];
  * @param senddate 发送的数据
  * @return uint8_t  通讯成功：0 其他通讯失败
  * */
-uint8_t BQI2C_Write(uint8_t mcuAddr, uint8_t regAddr, uint8_t senddate)
+uint8_t BQI2C_Write(uint8_t mcuAddr, uint16_t regAddr, uint8_t senddate)
 {
     /*  Write Device Address */
     Wire.beginTransmission(mcuAddr);
@@ -56,6 +56,24 @@ void BQI2C_Read(uint8_t mcuAddr, uint8_t regAddr)
     }
 }
 //--------------------------------------------------------------------------------以下为寄存器读取---------------------
+
+/**
+ * @brief  设置电池型号
+ * @param  Address  14.4 0x03 BatteryMode()
+ * @param  Unit    & 0x8000  mAH改cWh
+ */
+void BatteryMode()
+{
+    uint16_t getdate;
+    BQI2C_Write(BQ40z50address, 0x03, getdate & 0xCFFF);
+    BQI2C_Read(BQ40z50address, 0x03); // 
+    getdate = (bq40z50_word_buf[2] << 8) + bq40z50_word_buf[1];
+    
+
+    Serial.print("BatteryMode: -----------------------------------------------------------");
+    Serial.println(getdate);
+}
+
 /**
  * @brief 电池温度
  * @param  Address 14.9 0x08 Temperature()
@@ -253,6 +271,38 @@ uint16_t BQ_FullChargeCapacity()
     Serial.println(getdate);
     return getdate;
 }
+
+/**
+  * @brief 当前放电率返回预测的剩余电池容量
+  * @param Address   14.18 0x11 RunTimeToEmpty()
+  * @param Unit  min
+  * @return uint16_t  此读字函数根据当前放电率返回预测的剩余电池容量。
+  */
+uint16_t BQ_RunTimeToEmpty()
+{
+    uint16_t getdate;
+    BQI2C_Read(BQ40z50address, 0x11);
+    getdate = (bq40z50_word_buf[2] << 8) + bq40z50_word_buf[1];
+    Serial.print("BQ_RunTimeToEmpty: ");
+    Serial.println(getdate);
+    return getdate;
+}
+/**
+  * @brief  充满电时间
+  * @param Address    14.20 0x13 AverageTimeToFull()
+  * @param Unit  min
+  * @return uint16_t   此读字函数根据 AverageCurrent（） 返回预测的充满电时间
+  */
+uint16_t BQ_AverageTimeToFull()
+{
+    uint16_t getdate;
+    BQI2C_Read(BQ40z50address, 0x13);
+    getdate = (bq40z50_word_buf[2] << 8) + bq40z50_word_buf[1];
+    Serial.print("BQ_AverageTimeToFull: ");
+    Serial.println(getdate);
+    return getdate;
+}
+
 /**
   * @brief 经历的放电循环次数
   * @param Address   14.24 0x17 CycleCount()
@@ -268,5 +318,51 @@ uint16_t BQ_CycleCount()
     Serial.println(getdate);
     return getdate;
 }
- 
 
+/**
+  * @brief 电池平衡时间信息。
+  * @param Address   14.69 0x76 CBStatus
+  * @param Unit
+  * @return uint16_t  此命令指示设备返回电池平衡时间信息。
+  */
+uint16_t BQ_CBStatus()
+{
+    uint16_t getdate;
+    BQI2C_Read(BQ40z50address, 0x76);
+    getdate = (bq40z50_word_buf[2] << 8) + bq40z50_word_buf[1];
+    Serial.print("BQ_CBStatus: ");
+    Serial.println(getdate);
+    return getdate;
+}
+
+/**
+  * @brief 返回健康状态
+  * @param Address   14.70 0x77 State-of-Health
+  * @param Unit
+  * @return uint16_t  此命令指示设备返回健康状态、完全充电容量和能量。
+  */
+uint16_t BQ_Health()
+{
+    uint16_t getdate;
+    BQI2C_Read(BQ40z50address, 0x77);
+    getdate = (bq40z50_word_buf[2] << 8) + bq40z50_word_buf[1];
+    Serial.print("BQ_Health: ");
+    Serial.println(getdate);
+    return getdate;
+}
+
+/**
+  * @brief 过滤后的容量和能量
+  * @param Address   14.71 0x78 FilteredCapacity
+  * @param Unit
+  * @return uint16_t  此命令指示设备返回过滤后的容量和能量，即使 [SMOOTH] = 0。
+  */
+uint16_t BQ_FilteredCapacity()
+{
+    uint16_t getdate;
+    BQI2C_Read(BQ40z50address, 0x78);
+    getdate = (bq40z50_word_buf[2] << 8) + bq40z50_word_buf[1];
+    Serial.print("BQ_FilteredCapacity: ");
+    Serial.println(getdate);
+    return getdate;
+}

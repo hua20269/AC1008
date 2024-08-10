@@ -444,6 +444,13 @@ void SW6306init() // sw6306初始化
     // }
     //-----------------------------------------------------------------------------------------------------------------------
 
+    Serial.println("-----------------------------------------------------------------0x15 --18----2A----2b---- 2c--");
+    Serial.println(I2C_Read(SW6306_address, 0x15));
+    Serial.println(I2C_Read(SW6306_address, 0x18));
+    Serial.println(I2C_Read(SW6306_address, 0x2A));
+    Serial.println(I2C_Read(SW6306_address, 0x2B));
+    Serial.println(I2C_Read(SW6306_address, 0x2C));
+    I2C_Write(SW6306_address, 0x15, 0xFF);
     I2C_Write_100_156(); // 100-156 寄存器写使能
     //
     if (I2C_Read(SW6306_address, 0x11D) != 0x80)
@@ -454,16 +461,21 @@ void SW6306init() // sw6306初始化
 
     if (I2C_Read(SW6306_address, 0x107) != 0x1C || I2C_Read(SW6306_address, 0x100) != 0x8E) // 功率设置
     {
-        I2C_Write_16(SW6306_address, 0x107, 0x1C); // 输入功率 设置 60W   0：27W    1：30W    2：35W    3：45W    4：60W    5：65W    6：100W    7：100W 
+        I2C_Write_16(SW6306_address, 0x107, 0x1C); // 输入功率 设置 60W   0：27W    1：30W    2：35W    3：45W    4：60W    5：65W    6：100W    7：100W
         I2C_Write_16(SW6306_address, 0x100, 0x8E); // 输出功率 设置 100w  0：27W    1：30W    2：35W    3：45W    4：60W    5：65W    6：100W    7：reserved
     }
 
-    if (I2C_Read(SW6306_address, 0x108) != 0x9C)   // 充电配置
-        I2C_Write_16(SW6306_address, 0x108, 0x9C); // 设置电池类型4.3V 电池节数4节
-    if (I2C_Read(SW6306_address, 0x104) != 0x1)
-        I2C_Write_16(SW6306_address, 0x104, 0x1); // 三元锂电池欠压门限，N为电池节数     0：3.0V*N     1：2.6V*N     2：2.7V*N    3：2.8V*N    4：2.9V*N    5：3.1V*N    6：3.2V*N    7：3.3V*N
+    if (I2C_Read(SW6306_address, 0x108) != 0x0C)   // 充电配置
+        I2C_Write_16(SW6306_address, 0x108, 0x0C); // 设置电池类型4.2V    电池节数4节 0000 1100
+    if (I2C_Read(SW6306_address, 0x104) != 0x3)
+        I2C_Write_16(SW6306_address, 0x104, 0x3); // 三元锂电池欠压门限，N为电池节数     0：3.0V*N     1：2.6V*N     2：2.7V*N    3：2.8V*N    4：2.9V*N    5：3.1V*N    6：3.2V*N    7：3.3V*N
 
-    //
+
+    if (I2C_Read(SW6306_address, 0x10D) != 0x30)   // 充电配置6
+        I2C_Write_16(SW6306_address, 0x10D, 0x30); // 涓流充电电流    0：100mA    1：200mA    2：300mA    3：400mA 
+    
 
     I2C_Write_16(SW6306_address, 0x1FF, 0x0); // 切换回 0-100 写使能
 }
+
+

@@ -7,6 +7,8 @@ void RefreshDisplay(); // 刷新画面
 void sys_init(uint16_t timenum);
 void PowerLOGO();
 
+//-------------------sw6306
+
 void lcdlayout01(uint16_t bat_circ, uint8_t bat_per, float battery_V, float ic_temp, float sys_outinv, float battery_A, float bat_ntc, uint8_t sys, uint8_t A_C, uint8_t bt_icon);
 
 void BackgroundTime2(uint8_t A_C, uint8_t bt_icon, float sys_outinv, float battery_A, float sys_w, float ic_temp,
@@ -19,6 +21,8 @@ void BackgroundTime4(float battery_V, float sys_outinv, uint8_t sys, float batte
                      uint8_t bt_icon, float ic_temp, float bat_ntc);
 void BackgroundTime5(float battery_V, float sys_outinv, uint8_t sys, uint8_t A_C, float battery_A, float sys_w, uint8_t bat_per, float bat_m, uint8_t bt_icon,
                      float ic_temp, float bat_ntc, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t sec, uint8_t week);
+
+//------------------BQ40Z50
 
 void BQScreenLayout1(float bq_battemp, float bq_batv, float bq_bata, float bq_batv4, float bq_batv3, float bq_batv2, float bq_batv1, uint16_t bq_chargetime, uint16_t bq_dischargetime,
                      uint8_t bq_batper, uint16_t bq_batm, uint16_t bq_capacity, uint16_t bq_cyclecount);

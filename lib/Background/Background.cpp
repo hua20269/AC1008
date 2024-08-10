@@ -1237,7 +1237,7 @@ void BQScreenLayout1(float bq_battemp, float bq_batv, float bq_bata, float bq_ba
 {
 
     char num_n[10];
-    float a = 0, b = 0;
+    float bq_bata1;
     int bat = 0;
     if (bq_batper > 100)
         bq_batper = 100;
@@ -1275,7 +1275,7 @@ void BQScreenLayout1(float bq_battemp, float bq_batv, float bq_bata, float bq_ba
     sprite1.fillRoundRect(240 - 24, 111, 24, 24, 5, TFT_CYAN);
     /**
      * 左侧 列
-     */ 
+     */
     sprite1.setTextDatum(TL_DATUM); // 字体左上角为原点
     sprite1.loadFont(KaiTi22);
     sprite1.setTextColor(TFT_BLACK);
@@ -1287,15 +1287,17 @@ void BQScreenLayout1(float bq_battemp, float bq_batv, float bq_bata, float bq_ba
     // 左侧实时数据
     sprite1.loadFont(JianTi20);
     sprite1.setTextColor(TFT_WHITE);
-    sprintf(num_n, "%.2f℃", bq_battemp); // 温度
+    sprintf(num_n, "%.1f℃", bq_battemp); // 温度
     sprite1.drawString(num_n, 27, 4);
     sprintf(num_n, "%.2fV", bq_batv); // 总电压
     sprite1.drawString(num_n, 27, 31);
-    sprintf(num_n, "%.2fA", bq_bata); // 电流
+    if (bq_bata < 0)
+        bq_bata1 = bq_bata * -1;
+    sprintf(num_n, "%.2fA", bq_bata1); // 电流
     sprite1.drawString(num_n, 27, 58);
-    sprintf(num_n, "%.2fw", bq_batv * bq_bata); // 功率
+    sprintf(num_n, "%.2fw", bq_batv * bq_bata1); // 功率
     sprite1.drawString(num_n, 27, 85);
-    sprintf(num_n, "%dmA", bq_batm); // 实时容量
+    sprintf(num_n, "%dcWh", bq_batm); // 实时容量
     sprite1.drawString(num_n, 27, 115);
     /**
      * 右侧 列
@@ -1303,23 +1305,47 @@ void BQScreenLayout1(float bq_battemp, float bq_batv, float bq_bata, float bq_ba
     sprite1.setTextDatum(TR_DATUM); // 字体右上角为原点
     sprite1.loadFont(KaiTi22);
     sprite1.setTextColor(TFT_BLACK);
-    sprite1.drawString("压", 239, 1);
-    sprite1.drawString("压", 239, 28);
-    sprite1.drawString("压", 239, 55);
-    sprite1.drawString("压", 239, 82);
-    sprite1.drawString("容", 239, 112);
+    // sprite1.drawString("压", 239, 1);
+    sprite1.drawString("1", 233, 2 + 1);
+    sprite1.drawString("2", 233, 2 + 28);
+    sprite1.drawString("3", 233, 2 + 55);
+    sprite1.drawString("4", 233, 2 + 82);
+    sprite1.drawString("T", 235, 2 + 112);
     // 右侧实时数据
     sprite1.loadFont(JianTi20);
     sprite1.setTextColor(TFT_WHITE);
+    if (bq_batv1 < 3.0)
+        sprite1.setTextColor(TFT_RED);
     sprintf(num_n, "%.2fV", bq_batv1);
     sprite1.drawString(num_n, 213, 4);
+
+    sprite1.setTextColor(TFT_WHITE);
+    if (bq_batv2 < 3.0)
+        sprite1.setTextColor(TFT_RED);
     sprintf(num_n, "%.2fV", bq_batv2);
     sprite1.drawString(num_n, 213, 31);
+
+    sprite1.setTextColor(TFT_WHITE);
+    if (bq_batv3 < 3.0)
+        sprite1.setTextColor(TFT_RED);
     sprintf(num_n, "%.2fV", bq_batv3);
     sprite1.drawString(num_n, 213, 58);
+
+    sprite1.setTextColor(TFT_WHITE);
+    if (bq_batv4 < 3.0)
+        sprite1.setTextColor(TFT_RED);
     sprintf(num_n, "%.2fV", bq_batv4);
     sprite1.drawString(num_n, 213, 85);
-    sprintf(num_n, "%dmA", bq_capacity);
+
+    // sprite1.setTextColor(TFT_WHITE);
+    // sprintf(num_n, "%dmA", bq_capacity);
+    // sprite1.drawString(num_n, 213, 115);
+
+    sprite1.setTextColor(TFT_WHITE);
+    if (bq_chargetime < 65535)
+        sprintf(num_n, "%dmin", bq_chargetime);
+    else
+        sprintf(num_n, "%dmin", bq_dischargetime);
     sprite1.drawString(num_n, 213, 115);
 
     /**
@@ -1328,21 +1354,12 @@ void BQScreenLayout1(float bq_battemp, float bq_batv, float bq_bata, float bq_ba
     sprite1.loadFont(JianTi26);
     sprite1.setTextColor(TFT_WHITE);
     sprite1.setTextDatum(CC_DATUM); // 字体中间中心为原点
-    // 电量百分比   右上角
+    // 电量百分比
     sprintf(num_n, "%d", bq_batper); // 传值
     if (bq_batper < 10)
-    { // 小于10   一个字符右移一点   改为红色字体
-        sprite1.setTextColor(TFT_RED);
-        sprite1.drawString(num_n, 120, 17); // 电量百分比红色显示
-    }
-    else if (bq_batper == 100)
-    {
-        sprite1.drawString(num_n, 120, 17);
-    }
-    else
-    {
-        sprite1.drawString(num_n, 120, 17);
-    }
+        sprite1.setTextColor(TFT_RED); // 小于10      改为红色字体
+    sprite1.drawString(num_n, 120, 17);
+
     /**
      * 大电池图标
      */
@@ -1369,8 +1386,27 @@ void BQScreenLayout1(float bq_battemp, float bq_batv, float bq_bata, float bq_ba
     default:
         break;
     }
-    sprintf(num_n, "%d", bq_chargetime);
-    sprite1.drawString(num_n, 120, 124);
+
+    sprite1.loadFont(KaiTi18);
+    if (bq_bata < 0 && bq_bata > -0.05)
+    {
+        sprite1.setTextColor(TFT_WHITE);
+        sprite1.drawString("待机", 120, 122);
+    }
+    else if (bq_bata < 0)
+    {
+        sprite1.setTextColor(TFT_PINK);
+        sprite1.drawString("放电", 120, 122);
+    }
+    else
+    {
+        sprite1.setTextColor(TFT_CYAN);
+        sprite1.drawString("充电", 120, 122);
+    }
+    
+    // sprintf(num_n, "%d", "bq_bata");
+    // sprite1.drawString(num_n, 120, 124);
+
     //-----------------------------------------------------------------------
     // sprite1.drawLine(0, 108, 240, 108, TFT_PINK); // 下方分割直线  两点确定一条直线，两点坐标
     sprite1.drawFastHLine(0, 108, 240, TFT_PINK); // 下方分割横线  坐标  ,宽度

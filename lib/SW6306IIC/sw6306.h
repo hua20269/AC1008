@@ -65,5 +65,5 @@ void Small_A_OFF();
 // void L_State(); // 控制L口输入功率30w，关闭输出
 
 void SW6306init(); // sw6306初始化
-
+void cuowu();
 #endif
