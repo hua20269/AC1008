@@ -34,7 +34,7 @@ void setup()
     IICinit();                                                                 // 初始化 IIC 通讯
     EEPROMinit();                                                              // 初始化 EEPROM 寄存器
     DisplayInit();                                                             // 显示初始化
-    // PowerLOGO(imgName);                                                               // 开机LOGO
+    PowerLOGO(imgName);                                                               // 开机LOGO
 
     // 配置倒计时
     if (EEPROM.read(5) < 10 && EEPROM.read(5) != 0 || EEPROM.read(5) > 120) // 亮屏时间30-120s

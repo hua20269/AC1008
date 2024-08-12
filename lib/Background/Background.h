@@ -5,7 +5,7 @@ void LcdRotation(); // 连接蓝牙实时刷新屏幕方向
 
 void RefreshDisplay(); // 刷新画面
 void sys_init(uint16_t timenum);
-void PowerLOGO(char imgName);
+void PowerLOGO(String imgName);
 
 //---------------主题-----------
 // 经典主题  HUA

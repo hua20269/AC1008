@@ -94,7 +94,7 @@ void sys_init(uint16_t timenum)
     sprite1.unloadFont();     // 释放加载字体
 }
 
-void PowerLOGO(char imgName) // 开机LOGO
+void PowerLOGO(String imgName) // 开机LOGO
 {
     sprite1.createSprite(240, 135); // 创建画布大小
    

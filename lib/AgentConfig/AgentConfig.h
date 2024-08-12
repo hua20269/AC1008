@@ -8,7 +8,7 @@
  */
 // 默认 公司
 #define agent "IStore"      // 代理名   蓝牙给小程序传值    Intelligent store
-// #define imgName ''      // 开机LOGO
+#define imgName ''      // 开机LOGO
 #define software "v4.0" // 固件版本
 #define hardware "v3.0" // 硬件版本
 #define upUrl "http://bin.bemfa.com/b/3BcYWMzNDRjODg3OGFiNWQwMWNlNDFkMjNiMmRjZjRmNzQ=AC225.bin"
