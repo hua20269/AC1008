@@ -122,22 +122,20 @@ void loop()
     while (currentTime >= 0)              // 屏幕睡眠时间 转次数
     {
         Serial.println("------------------------------------------------------------------SW6306-----------loop------------------------");
-        sys_v = SYS_V();            // 系统电压
-        sys_a = SYS_A();            // 系统 输入/输出 电流
-        bat_v = Battery_V();        // 电池电压
-        bat_a = Battery_A();        // 电池 输入/输出 电流
-        ic_temp = IC_Temp();        // 芯片温度
-        ntc_temp = NTC_Temp();      // NTC温度
-        bat_m = Battery_Volume();   // 库仑计当前容量
-        bat_per = Battery_Per();    // 电池电量百分比
-        sys_state = SYS_State();    // 充放电状态   1 放电   2 充电
-        ac_state = AC_State();      // 端口在线状态 C2是L口   0:空闲   1:C2   2:C1   3:C1C2   4:A2   5:A2C2   6:A2C1   7:A2C1C2   8:A1   9:A1C2   A:A1C1   B:A1C1C2   C:A1A2   D:A1A2C2   E:A1A2C1   F:A1A2C1C2
-        EE_CycleCount(bat_per);     // 电池循环次数的判断
-        cycle = EEPROM.read(2) / 2; // 判断之后读取  电池循环次数    /2减缓次数  20-80
-        vTaskDelay(10);
+        sys_v = SYS_V();                                             // 系统电压
+        sys_a = SYS_A();                                             // 系统 输入/输出 电流
+        bat_v = Battery_V();                                         // 电池电压
+        bat_a = Battery_A();                                         // 电池 输入/输出 电流
+        ic_temp = IC_Temp();                                         // 芯片温度
+        ntc_temp = NTC_Temp();                                       // NTC温度
+        bat_m = Battery_Volume();                                    // 库仑计当前容量
+        bat_per = Battery_Per();                                     // 电池电量百分比
+        sys_state = SYS_State();                                     // 充放电状态   1 放电   2 充电
+        ac_state = AC_State();                                       // 端口在线状态 C2是L口   0:空闲   1:C2   2:C1   3:C1C2   4:A2   5:A2C2   6:A2C1   7:A2C1C2   8:A1   9:A1C2   A:A1C1   B:A1C1C2   C:A1A2   D:A1A2C2   E:A1A2C1   F:A1A2C1C2
+        EE_CycleCount(bat_per);                                      // 电池循环次数的判断
+        cycle = EEPROM.read(2) / 2;                                  // 判断之后读取  电池循环次数    /2减缓次数  20-80
         PrintTime(&year, &month, &day, &hour, &minute, &sec, &week); // 获取时间数据     年 月 日 时 分 秒 周
-        vTaskDelay(10);
-        sinkProtocol = Sink_Protocol(); // 充电协议
+        sinkProtocol = Sink_Protocol();                              // 充电协议
         // sourceProtocol = Source_Protocol(); // 放电协议
         smalla = Small_A_State(); // 小电流状态   0: 关    1: 开
 
@@ -233,22 +231,20 @@ void loop()
                             {
                                 LcdRotation(); // 实时屏幕上下
 
-                                sys_v = SYS_V();            // 系统电压
-                                sys_a = SYS_A();            // 系统 输入/输出 电流
-                                bat_v = Battery_V();        // 电池电压
-                                bat_a = Battery_A();        // 电池 输入/输出 电流
-                                ic_temp = IC_Temp();        // 芯片温度
-                                ntc_temp = NTC_Temp();      // NTC温度
-                                bat_m = Battery_Volume();   // 库仑计当前容量
-                                bat_per = Battery_Per();    // 电池电量百分比
-                                sys_state = SYS_State();    // 充放电状态   1 放电   2 充电
-                                ac_state = AC_State();      // 端口在线状态 C2是L口   0:空闲   1:C2   2:C1   3:C1C2   4:A2   5:A2C2   6:A2C1   7:A2C1C2   8:A1   9:A1C2   A:A1C1   B:A1C1C2   C:A1A2   D:A1A2C2   E:A1A2C1   F:A1A2C1C2
-                                EE_CycleCount(bat_per);     // 电池循环次数的判断
-                                cycle = EEPROM.read(2) / 2; // 判断之后读取  电池循环次数    /2减缓次数  20-80
-                                vTaskDelay(10);
+                                sys_v = SYS_V();                                             // 系统电压
+                                sys_a = SYS_A();                                             // 系统 输入/输出 电流
+                                bat_v = Battery_V();                                         // 电池电压
+                                bat_a = Battery_A();                                         // 电池 输入/输出 电流
+                                ic_temp = IC_Temp();                                         // 芯片温度
+                                ntc_temp = NTC_Temp();                                       // NTC温度
+                                bat_m = Battery_Volume();                                    // 库仑计当前容量
+                                bat_per = Battery_Per();                                     // 电池电量百分比
+                                sys_state = SYS_State();                                     // 充放电状态   1 放电   2 充电
+                                ac_state = AC_State();                                       // 端口在线状态 C2是L口   0:空闲   1:C2   2:C1   3:C1C2   4:A2   5:A2C2   6:A2C1   7:A2C1C2   8:A1   9:A1C2   A:A1C1   B:A1C1C2   C:A1A2   D:A1A2C2   E:A1A2C1   F:A1A2C1C2
+                                EE_CycleCount(bat_per);                                      // 电池循环次数的判断
+                                cycle = EEPROM.read(2) / 2;                                  // 判断之后读取  电池循环次数    /2减缓次数  20-80
                                 PrintTime(&year, &month, &day, &hour, &minute, &sec, &week); // 获取时间数据     年 月 日 时 分 秒 周
-                                vTaskDelay(10);
-                                sinkProtocol = Sink_Protocol(); // 充电协议
+                                sinkProtocol = Sink_Protocol();                              // 充电协议
                                 // sourceProtocol = Source_Protocol(); // 放电协议
                                 smalla = Small_A_State(); // 小电流状态   0: 关    1: 开
 
