@@ -3,6 +3,7 @@
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
 
+// new
 #define LCD_BL 21
 #define LCD_RES 22
 #define LCD_DC 19
@@ -10,12 +11,11 @@
 #define LCD_SCK 18
 #define LCD_CS 5
 
-
 class LGFX : public lgfx::LGFX_Device
 {
-    lgfx::Panel_ST7789 _panel_instance; //指定使用型号 (ST7789)
-    lgfx::Bus_SPI _bus_instance; //SPI设定
-    lgfx::Light_PWM _light_instance;//背光设定
+    lgfx::Panel_ST7789 _panel_instance; // 指定使用型号 (ST7789)
+    lgfx::Bus_SPI _bus_instance;        // SPI设定
+    lgfx::Light_PWM _light_instance;    // 背光设定
 
 public:
     LGFX(void)
@@ -76,7 +76,7 @@ public:
 
 void DisplayInit();    // 初始化函数
 void RefreshDisplay(); // 刷新画面
-//void Background_1();   // 背景主题1
-//void ShowParameter_1(float batv, float bata, uint16_t ACstate, float temp, float sysv, float sysw, uint16_t workp, float batvolume, int xnum, uint16_t batper, float battemp);
+// void Background_1();   // 背景主题1
+// void ShowParameter_1(float batv, float bata, uint16_t ACstate, float temp, float sysv, float sysw, uint16_t workp, float batvolume, int xnum, uint16_t batper, float battemp);
 
 #endif

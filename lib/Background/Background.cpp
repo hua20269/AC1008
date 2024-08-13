@@ -49,9 +49,7 @@ void DisplayInit() // 屏幕初始化
 void LcdRotation() // 连接蓝牙实时刷新屏幕方向
 {
     if (EEPROM.read(3) == 3)
-    {
         lcd.setRotation(3);
-    }
     else
         lcd.setRotation(1);
 }
@@ -97,46 +95,46 @@ void sys_init(uint16_t timenum)
 void PowerLOGO(String imgName) // 开机LOGO
 {
     sprite1.createSprite(240, 135); // 创建画布大小
-   
-    // if (imgName != "")
-    // {
-    //     if (imgName == "imgZhongGuoLianTong")
-    //     {
-    //         sprite1.drawPng(imgZhongGuoLianTong, sizeof(imgZhongGuoLianTong), 0, 0); // 中国联通
-    //         sprite1.pushSprite(0, 0);                                                // 显示在画布1上
-    //         vTaskDelay(3000);                                                        // LOGO显示时间
-    //     }
-    //     if (imgName == "imgLinJieJie")
-    //     {
-    //         sprite1.drawPng(imgLinJieJie, sizeof(imgLinJieJie), 0, 0);
-    //         sprite1.pushSprite(0, 0);
-    //         vTaskDelay(3000);
-    //     }
-    //     if (imgName == "imgZiQiDongLai")
-    //     {
-    //         sprite1.drawPng(imgZiQiDongLai, sizeof(imgZiQiDongLai), 0, 0);
-    //         sprite1.pushSprite(0, 0);
-    //         vTaskDelay(3000);
-    //     }
-    //     if (imgName == "imgZhiChuBao")
-    //     {
-    //         sprite1.drawPng(imgZhiChuBao, sizeof(imgZhiChuBao), 0, 0);
-    //         sprite1.pushSprite(0, 0);
-    //         vTaskDelay(1000);
-    //     }
-    //     if (imgName == "imgShunFeng")
-    //     {
-    //         sprite1.drawPng(imgShunFeng, sizeof(imgShunFeng), 0, 0);
-    //         sprite1.pushSprite(0, 0);
-    //         vTaskDelay(5000);
-    //     }
-    //     if (imgName == "imgYiWangQinSheng")
-    //     {
-    //         sprite1.drawPng(imgYiWangQinSheng, sizeof(imgYiWangQinSheng), 0, 0);
-    //         sprite1.pushSprite(0, 0);
-    //         vTaskDelay(3000);
-    //     }
-    // }
+
+    if (imgName != "")
+    {
+        if (imgName == "imgZhongGuoLianTong")
+        {
+            sprite1.drawPng(imgZhongGuoLianTong, sizeof(imgZhongGuoLianTong), 0, 0); // 中国联通
+            sprite1.pushSprite(0, 0);                                                // 显示在画布1上
+            vTaskDelay(3000);                                                        // LOGO显示时间
+        }
+        if (imgName == "imgLinJieJie")
+        {
+            sprite1.drawPng(imgLinJieJie, sizeof(imgLinJieJie), 0, 0);
+            sprite1.pushSprite(0, 0);
+            vTaskDelay(3000);
+        }
+        if (imgName == "imgZiQiDongLai")
+        {
+            sprite1.drawPng(imgZiQiDongLai, sizeof(imgZiQiDongLai), 0, 0);
+            sprite1.pushSprite(0, 0);
+            vTaskDelay(3000);
+        }
+        if (imgName == "imgZhiChuBao")
+        {
+            sprite1.drawPng(imgZhiChuBao, sizeof(imgZhiChuBao), 0, 0);
+            sprite1.pushSprite(0, 0);
+            vTaskDelay(1000);
+        }
+        if (imgName == "imgShunFeng")
+        {
+            sprite1.drawPng(imgShunFeng, sizeof(imgShunFeng), 0, 0);
+            sprite1.pushSprite(0, 0);
+            vTaskDelay(5000);
+        }
+        if (imgName == "imgYiWangQinSheng")
+        {
+            sprite1.drawPng(imgYiWangQinSheng, sizeof(imgYiWangQinSheng), 0, 0);
+            sprite1.pushSprite(0, 0);
+            vTaskDelay(3000);
+        }
+    }
 
     sprite1.deleteSprite(); // 删除精灵
     sprite1.unloadFont();   // 释放加载字体
@@ -235,83 +233,106 @@ void Theme1(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
     sprintf(num_n, "%.1fw", sys_v * sys_a); // 功
     sprite1.drawString(num_n, 27, 85);
     // 快充协议
-    //* bit:7 PD版本指示 0: PD2.0 1: PD3.0   注意此指示只在PD沟通后有效
-    //* bit:6-4 充电sink快充协议指示 0: 非快充  * 1: PD sink 2: / 3: HV sink 4: AFC sink 5: FCP sink 6: SCP sink 7: PE1.1 sink  (2:PD3.0)
-    //* bit:3-0 放电source快充协议指示 0: 非快充 1: PD source 2: PPS source 3: QC2.0 source 4: QC3.0 source 5: FCP source
-    //                          6: PE2.0 /1.1 source 7: SFCP source 8: AFC source 9: SCP source 10-15: reserved(10:PD3.0)
-    if (sys_state == 2) // 充电
+    // bit 3-0 快充指示
+    // 0：None   1：QC2   2：QC3   3：QC3+   4：FCP   5：SCP   6：PD FIX   7：PD PPS   8：PE 1.1   9：PE 2.0   10：VOOC 1.0   11：VOOC 4.0   12：SuperVOOC   13：SFCP   14：AFC   15：UFCS
+    // if (sys_state == 2) // 充电
+    if (sys_state == 2 || sys_state == 1) // 充电
     {
         switch (sinkProtocol) // 快充协议
         {
         case 0:
-            sprite1.drawString("NOT", 27, 115);
+            sprite1.drawString("None", 27, 115);
             break;
         case 1:
-            sprite1.drawString("PD2.0", 27, 115);
+            sprite1.drawString("QC2.0", 27, 115);
             break;
         case 2:
-            sprite1.drawString("PD3.0", 27, 115);
+            sprite1.drawString("QC3.0", 27, 115);
             break;
         case 3:
-            sprite1.drawString("HV", 27, 115);
+            sprite1.drawString("QC3+", 27, 115);
             break;
         case 4:
-            sprite1.drawString("AFC", 27, 115);
-            break;
-        case 5:
             sprite1.drawString("FCP", 27, 115);
             break;
-        case 6:
+        case 5:
             sprite1.drawString("SCP", 27, 115);
             break;
+        case 6:
+            sprite1.drawString("FIX", 27, 115);
+            break;
         case 7:
+            sprite1.drawString("PPS", 27, 115);
+            break;
+        case 8:
             sprite1.drawString("PE1.1", 27, 115);
+            break;
+        case 9:
+            sprite1.drawString("PE2.0", 27, 115);
+            break;
+        case 10:
+            sprite1.drawString("VOOC1", 27, 115);
+            break;
+        case 11:
+            sprite1.drawString("VOOC4", 27, 115);
+            break;
+        case 12:
+            sprite1.drawString("SVOOC", 27, 115);
+            break;
+        case 13:
+            sprite1.drawString("SFCP", 27, 115);
+            break;
+        case 14:
+            sprite1.drawString("AFC", 27, 115);
+            break;
+        case 15:
+            sprite1.drawString("UFCS", 27, 115);
             break;
 
         default:
             break;
         }
-    }
-    else if (sys_state == 1) // 放电
-    {
-        switch (sourceProtocol) // 快放协议
-        {
-        case 0:
-            sprite1.drawString("NOT", 27, 115);
-            break;
-        case 1:
-            sprite1.drawString("PD2.0", 27, 115);
-            break;
-        case 2:
-            sprite1.drawString("PPS", 27, 115);
-            break;
-        case 3:
-            sprite1.drawString("QC2.0", 27, 115);
-            break;
-        case 4:
-            sprite1.drawString("QC3.0", 27, 115);
-            break;
-        case 5:
-            sprite1.drawString("FCP", 27, 115);
-            break;
-        case 6:
-            sprite1.drawString("PE2/1", 27, 115);
-            break;
-        case 7:
-            sprite1.drawString("SFCP", 27, 115);
-            break;
-        case 8:
-            sprite1.drawString("AFC", 27, 115);
-            break;
-        case 9:
-            sprite1.drawString("SCP", 27, 115);
-            break;
-        case 10:
-            sprite1.drawString("PD3.0", 27, 115);
-            break;
-        default:
-            break;
-        }
+        // }
+        // else if (sys_state == 1) // 放电
+        // {
+        // switch (sourceProtocol) // 快放协议
+        // {
+        // case 0:
+        //     sprite1.drawString("None", 27, 115);
+        //     break;
+        // case 1:
+        //     sprite1.drawString("PD2.0", 27, 115);
+        //     break;
+        // case 2:
+        //     sprite1.drawString("PPS", 27, 115);
+        //     break;
+        // case 3:
+        //     sprite1.drawString("QC2.0", 27, 115);
+        //     break;
+        // case 4:
+        //     sprite1.drawString("QC3.0", 27, 115);
+        //     break;
+        // case 5:
+        //     sprite1.drawString("FCP", 27, 115);
+        //     break;
+        // case 6:
+        //     sprite1.drawString("PE2/1", 27, 115);
+        //     break;
+        // case 7:
+        //     sprite1.drawString("SFCP", 27, 115);
+        //     break;
+        // case 8:
+        //     sprite1.drawString("AFC", 27, 115);
+        //     break;
+        // case 9:
+        //     sprite1.drawString("SCP", 27, 115);
+        //     break;
+        // case 10:
+        //     sprite1.drawString("PD3.0", 27, 115);
+        //     break;
+        // default:
+        //     break;
+        // }
     }
     else
         sprite1.drawString("NULL", 27, 115);
@@ -323,16 +344,18 @@ void Theme1(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
     sprintf(num_n, "%.2fA", sys_v * sys_a / bat_v); // 电池电流
     sprite1.drawString(num_n, 117, 31);
 
-    // A口状态
-    if (ac_state == 1 || ac_state == 5)
+    // 0:空闲   1:C2   2:C1   3:C1C2   4:A2   5:A2C2   6:A2C1   7:A2C1C2   8:A1   9:A1C2   10/A:A1C1   11/B:A1C1C2   12/C:A1A2   13/D:A1A2C2   14/E:A1A2C1   15/F:A1A2C1C2
+    // A1/A2口状态
+    if (ac_state >= 4)
         sprite1.drawString("ON", 117, 58);
     else
         sprite1.drawString("OFF", 117, 58);
-    // C口状态
-    if (ac_state == 4 || ac_state == 5)
+    // C1口状态
+    if (ac_state == 2 || ac_state == 3 || ac_state == 6 || ac_state == 7 || ac_state == 10 || ac_state == 11 || ac_state == 14 || ac_state == 15)
         sprite1.drawString("ON", 117, 85);
     else
         sprite1.drawString("OFF", 117, 85);
+
     // 循环次数
     sprintf(num_n, "%d", cycle);
     sprite1.drawString(num_n, 117, 115); // 循环次数
@@ -1868,7 +1891,7 @@ void Theme7(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
 //----------------------------------------------------------------------------------以下为提示页面------------------------
 //----------------------------------------------------------------------------------以下为提示页面------------------------
 
-// 非正当获得设备采取措施
+// 非正当获得设备采取措施 ，强制关闭输出，保留充电
 void lost_Page()
 {
     sprite1.createSprite(240, 135); // 创建画布大小

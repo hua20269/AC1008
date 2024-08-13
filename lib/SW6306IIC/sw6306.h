@@ -39,30 +39,11 @@ uint8_t SYS_State();      // 充放电状态   1 放电   2 充电
 uint8_t AC_State();       // 端口在线状态 C2是L口   0:空闲   1:C2   2:C1   3:C1C2   4:A2   5:A2C2   6:A2C1   7:A2C1C2   8:A1   9:A1C2   A:A1C1   B:A1C1C2   C:A1A2   D:A1A2C2   E:A1A2C1   F:A1A2C1C2
 uint8_t Small_A_State();  // 小电流状态   0: 关    1: 开
 void Small_A_ON_or_OFF(); // 小电流开关
+void AC_OFF();            // 关闭所有输出口
+void AC_ON();             // 解除
 
-//  void sysstate(uint8_t *H_value, uint8_t *L_value, float *battery_A); // 系统充放电L口和A1口的状态
-//  uint8_t batzhuangtai();                                              // 电池状态
-
-// REG0x24: I2C使能  操作0x100及以上寄存器使能
-
-// /**
-//  * @brief 小电流开关用到的函数
-//  */
-// void kqxdl();     // 开启小电流
-// void I2Csmall_A_ON(); // 小电流使能
-// void I2Csmall_A_OFF(); // 小电流不使能
-// uint8_t xdlzt();  // 小电流状态
-// void A2_ON();  // A2口插入
-// void A2_OFF(); // A2口拔出
-
-// void A1shijian(); // 触发A1口的插入
-
-// void AC_OFF(); // 关闭所有输出口  bit 自动清零
-
-// void NTCLimit();//设置NTC温度上限保护60℃ 改为 65℃     温度每上升1度，电压下降800mv
-
-// void L_State(); // 控制L口输入功率30w，关闭输出
+uint8_t Sink_Protocol(); // 快充协议
 
 void SW6306init(); // sw6306初始化
-void cuowu();
+
 #endif

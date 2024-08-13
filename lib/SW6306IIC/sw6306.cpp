@@ -323,8 +323,8 @@ uint8_t Small_A_State()
 }
 
 /**
- * @brief  REG0x28: 模式设置    控制进入小电流充电
- * @param  bit: 1
+ * @brief  REG0x28: 模式设置
+ * @param  bit: 1  控制进入小电流充电
  * @param  1) 要进入小电流模式，此bit先写0，之后再写1，小电流模式定时重新打开
  * @param  2) 要退出小电流模式，此bit写0
  * @return
@@ -338,6 +338,42 @@ void Small_A_ON_or_OFF()
     }
     else if (Small_A_State() == 1)
         I2C_Write(SW6306_address, 0x28, 0X0); // 要退出小电流模式，此bit写0
+}
+
+/**
+ * @brief  REG0x28: 模式设置
+ * @param  bit:3  强制关闭输出
+ * @param  0：无影响      1：强制关闭输出使能      此bit不会自动清零，在强制关闭输出期间，A口插入检测关闭，不响应按键打开输出，Type-C口只作为sink
+ * @return
+ */
+void AC_OFF()
+{
+    I2C_Write(SW6306_address, 0x28, 0X8); // 此bit不会自动清零
+
+    Serial.print("--AC_OFF");
+}
+void AC_ON() // 解除
+{
+    if (I2C_Read(SW6306_address, 0x28) & 0x8 == 8) // bit3
+    {
+        I2C_Write(SW6306_address, 0x28, 0X0);
+        Serial.print("--AC_ON");
+    }
+}
+
+/**
+ * @brief  REG0x0F: 快充指示
+ * @param  bit 3-0 快充指示
+ * @param  0：None   1：QC2   2：QC3   3：QC3+   4：FCP   5：SCP   6：PD FIX   7：PD PPS   8：PE 1.1   9：PE 2.0   10：VOOC 1.0   11：VOOC 4.0   12：SuperVOOC   13：SFCP   14：AFC   15：UFCS
+ * @return
+ */
+uint8_t Sink_Protocol()
+{
+    Serial.println("0:None   1:QC2   2:QC3   3:QC3+   4:FCP   5:SCP   6:PD FIX   7:PD PPS   8:PE 1.1   9:PE 2.0   10:VOOC 1.0   11:VOOC 4.0   12:SuperVOOC   13:SFCP   14:AFC   15:UFCS");
+    Serial.print("--Sink_Protocol: ");
+    Serial.println(I2C_Read(SW6306_address, 0x0F) & 0x0F);
+
+    return I2C_Read(SW6306_address, 0x0F) & 0x0F; // 快充协议
 }
 
 /**

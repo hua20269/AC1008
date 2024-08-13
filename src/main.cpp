@@ -20,9 +20,9 @@ OneButton button(4, true);                     // IO4按键
 ESP32Time rtc;                                 // offset in seconds GMT+1  // 内置时钟
 
 // 子线程函数
-void Task_OTA(void *pvParameters);    // 子线程 OTA更新
-void Task_AC_OFF(void *pvParameters); // 子线程 关闭所有输出口
-void Task_IO4(void *pvParameters);    // 子线程 检测单击IO4  切换主题菜单
+void Task_OTA(void *pvParameters); // 子线程 OTA更新
+// void Task_AC_OFF(void *pvParameters); // 子线程 关闭所有输出口
+// void Task_IO4(void *pvParameters);    // 子线程 检测单击IO4  切换主题菜单
 
 void setup()
 {
@@ -32,9 +32,10 @@ void setup()
     esp_sleep_enable_ext0_wakeup(GPIO_NUM_27, 0);                              // 唤醒引脚配置 低电平唤醒
     esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ALL_LOW); // 唤醒引脚配置 低电平唤醒
     IICinit();                                                                 // 初始化 IIC 通讯
+    I2C_Write_0_100();                                                         // 可写100内寄存器
     EEPROMinit();                                                              // 初始化 EEPROM 寄存器
     DisplayInit();                                                             // 显示初始化
-    // PowerLOGO(imgName);                                                               // 开机LOGO
+    PowerLOGO(imgName);                                                        // 开机LOGO
 
     // 配置倒计时
     if (EEPROM.read(5) < 10 && EEPROM.read(5) != 0 || EEPROM.read(5) > 120) // 亮屏时间30-120s
@@ -42,19 +43,25 @@ void setup()
     if (EE_BLETimeRead() < 150 || EE_BLETimeRead() > 3600)                  // 蓝牙休眠时间150-3600s
         EE_BLETimeWrite(150);                                               // 不在范围  设置为 150
     EEPROM.commit();                                                        // 保存
-    // 多线程配置
-    if (EEPROM.read(12) == 1) // 丢失模式，关闭所有输出口
+
+    // 丢失模式，关闭所有输出口
+    if (EEPROM.read(12) == 1)
     {
-        xTaskCreatePinnedToCore(Task_AC_OFF,   // 具体实现的函数
-                                "Task_AC_OFF", // 任务名称
-                                1024,          // 堆栈大小
-                                NULL,          // 输入参数
-                                1,             // 任务优先级
-                                NULL,          //
-                                0              // 核心  0\1  不指定
-        );
-        lost_Page(); // 丢失设备提示页   内部延时 显示10s
+        // xTaskCreatePinnedToCore(Task_AC_OFF,   // 具体实现的函数
+        //                         "Task_AC_OFF", // 任务名称
+        //                         1024,          // 堆栈大小
+        //                         NULL,          // 输入参数
+        //                         1,             // 任务优先级
+        //                         NULL,          //
+        //                         0              // 核心  0\1  不指定
+        // );
+        AC_OFF();         // 强制关闭输出，此bit不会自动清零，执行一次。    6208会自动清零，需持续关闭
+        lost_Page();      // 丢失设备提示页
+        vTaskDelay(5000); // 提示5s
     }
+    else
+        AC_ON(); // 解除，不会每次执行写操作，内部有判断
+
     // OTA更新
     if (EEPROM.read(11) == 1) // OTA更新
     {
@@ -76,26 +83,28 @@ void setup()
     // button.attachDoubleClick(doubleclick);   // 注册双击
     // delay(600);                              // 600
     // 单击IO4  切换主题菜单
-    xTaskCreatePinnedToCore(Task_IO4,   // 具体实现的函数
-                            "Task_IO4", // 任务名称
-                            2048,       // 堆栈大小
-                            NULL,       // 输入参数
-                            1,          // 任务优先级
-                            NULL,       //
-                            0           // 核心  0\1 自动选择
-    );
+    // xTaskCreatePinnedToCore(Task_IO4,   // 具体实现的函数
+    //                         "Task_IO4", // 任务名称
+    //                         2048,       // 堆栈大小
+    //                         NULL,       // 输入参数
+    //                         1,          // 任务优先级
+    //                         NULL,       //
+    //                         0           // 核心  0\1 自动选择
+    // );
     // CK22AT  2314
     if (keros_main() != 1) // CK22AT  2314
         esp_deep_sleep_start();
     // sw6306 配置初始化
-    I2C_Write_0_100(); // 可写100内寄存器
-    SW6306init();      // sw6306初始化   // 设置100W最大充放功率   // C2口配置为B/L口模式   // 空载时间设置min:8s
-    Serial.printf("main on core: ");
+    SW6306init(); // sw6306初始化   // 设置100W最大充放功率   // C2口配置为B/L口模式   // 空载时间设置min:8s
+
+    Serial.printf("setup on core: ");
     Serial.println(xPortGetCoreID());
 }
 
 void loop()
 {
+    Serial.printf("loop on core: ");
+    Serial.println(xPortGetCoreID());
     float bat_v, bat_a, sys_v, sys_a, ic_temp, ntc_temp, bat_m;         // 电池电压  电池电流  系统电压  系统电流   ic温度    电池温度  电池实时容量
     uint8_t bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol; // 电池百分比   系统充放电状态   系统输出口状态   快充协议  快放协议
     uint8_t smalla;                                                     // 小电流  // 共用 ble set 蓝牙设置
@@ -128,7 +137,7 @@ void loop()
         vTaskDelay(10);
         PrintTime(&year, &month, &day, &hour, &minute, &sec, &week); // 获取时间数据     年 月 日 时 分 秒 周
         vTaskDelay(10);
-        // sinkProtocol = Sink_Protocol();     // 充电协议
+        sinkProtocol = Sink_Protocol(); // 充电协议
         // sourceProtocol = Source_Protocol(); // 放电协议
         smalla = Small_A_State(); // 小电流状态   0: 关    1: 开
 
@@ -165,11 +174,12 @@ void loop()
             break;
         }
         if (currentTime != 0)
-            currentTime--; // 睡眠时间倒计时(循环次数，大概1s/fps)   到0退出循环
+            currentTime--; // 睡眠时间倒计时(循环次数，大概1s/fps)   到1退出循环
         if (currentTime == 1)
             break; // 跳出大循环  睡眠
-        Serial.print("lcdSleepTime: ");
+        Serial.print("LCDTime: ");
         Serial.println(currentTime);
+
         currentTime1 = millis();                     // 板运行当前程序的时间
         while (millis() - currentTime1 < 1000 - 200) // 延时 大概 1s 刷新 一次   以上执行时间165ms↔
         {
@@ -238,7 +248,7 @@ void loop()
                                 vTaskDelay(10);
                                 PrintTime(&year, &month, &day, &hour, &minute, &sec, &week); // 获取时间数据     年 月 日 时 分 秒 周
                                 vTaskDelay(10);
-                                // sinkProtocol = Sink_Protocol();     // 充电协议
+                                sinkProtocol = Sink_Protocol(); // 充电协议
                                 // sourceProtocol = Source_Protocol(); // 放电协议
                                 smalla = Small_A_State(); // 小电流状态   0: 关    1: 开
 
@@ -275,8 +285,8 @@ void loop()
                                     break;
                                 }
                                 // 整理第 1 次发送数据
-                                // jsonBuffer1["agent"] = agent; // 代理人
-                                jsonBuffer1["efuseMac"] = String(ESP.getEfuseMac(), HEX);
+                                jsonBuffer1["agent"] = agent; // 代理人
+                                // jsonBuffer1["efuseMac"] = String(ESP.getEfuseMac(), HEX);
                                 jsonBuffer1["name"] = "AC1008";                  // 设备名称
                                 jsonBuffer1["software"] = software;              // 固件版本
                                 jsonBuffer1["hardware"] = hardware;              // 硬件版本
@@ -379,11 +389,11 @@ void loop()
                                     Rxdata = ""; // 清空
                                     Serial.println("----------------------");
                                 }
-                                Serial.print("topic: ");
+                                Serial.print("Topic: ");
                                 Serial.println(EEPROM.read(3));
-                                Serial.print("them: ");
+                                Serial.print("Theme: ");
                                 Serial.println(EEPROM.read(4));
-                                Serial.print("sleepTime: ");
+                                Serial.print("LCDTime: ");
                                 Serial.println(EEPROM.read(5));
                                 Serial.print("BTtime: ");
                                 Serial.println(EE_BLETimeRead());
@@ -393,7 +403,7 @@ void loop()
                                 Serial.println(EEPROM.read(11));
                                 Serial.print("AC_OFF: ");
                                 Serial.println(EEPROM.read(12));
-                                Serial.print("cycles: ");
+                                Serial.print("Cycles: ");
                                 Serial.print(EEPROM.read(2));
                                 Serial.println("/2");
 
@@ -469,24 +479,5 @@ void Task_OTA(void *pvParameters)
             break;
         }
         vTaskDelay(600); // 慢一点循环，让OTA跑流畅点   //延时 退让资源同时喂狗
-    }
-}
-void Task_AC_OFF(void *pvParameters)
-{
-    while (1)
-    {
-        Serial.print("Task_AC_OFF on core: ");
-        Serial.println(xPortGetCoreID()); // 所在核心
-        // AC_OFF();                         // 关闭AC口输出
-        vTaskDelay(1000); // 延时  及喂狗
-    }
-}
-void Task_IO4(void *pvParameters)
-{
-    while (1)
-    {
-        if (digitalRead(4) == LOW)
-            EE_IO4();
-        vTaskDelay(300); // 延时  及喂狗
     }
 }
