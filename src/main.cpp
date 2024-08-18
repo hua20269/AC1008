@@ -17,7 +17,7 @@
 BleKeyboard bleKeyboard("AC1008", "OCRC", 50); // 蓝牙
 Ticker ticker1;                                // 计时器
 OneButton button(4, true);                     // IO4按键
-ESP32Time rtc;                                 // offset in seconds GMT+1  // 内置时钟
+ESP32Time rtc(3600);                           // offset in seconds GMT+1  // 内置时钟
 
 // 子线程函数
 void Task_OTA(void *pvParameters); // 子线程 OTA更新
@@ -105,9 +105,9 @@ void loop()
 {
     Serial.printf("loop on core: ");
     Serial.println(xPortGetCoreID());
-    float bat_v, bat_a, sys_v, sys_a, ic_temp, ntc_temp, bat_m;         // 电池电压  电池电流  系统电压  系统电流   ic温度    电池温度  电池实时容量
-    uint8_t bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol; // 电池百分比   系统充放电状态   系统输出口状态   快充协议  快放协议
-    uint8_t smalla;                                                     // 小电流  // 共用 ble set 蓝牙设置
+    float bat_v, bat_a, sys_v, sys_a, ic_temp, ntc_temp, bat_m;     // 电池电压  电池电流  系统电压  系统电流   ic温度    电池温度  电池实时容量
+    uint8_t bat_per, sys_state, ac_state, protocol, sourceProtocol; // 电池百分比   系统充放电状态   系统输出口状态   快充协议  快放协议
+    uint8_t smalla;                                                 // 小电流  // 共用 ble set 蓝牙设置
 
     // 时间
     uint16_t year;                               // 年份
@@ -135,9 +135,8 @@ void loop()
         EE_CycleCount(bat_per);                                      // 电池循环次数的判断
         cycle = EEPROM.read(2) / 2;                                  // 判断之后读取  电池循环次数    /2减缓次数  20-80
         PrintTime(&year, &month, &day, &hour, &minute, &sec, &week); // 获取时间数据     年 月 日 时 分 秒 周
-        sinkProtocol = Sink_Protocol();                              // 充电协议
-        // sourceProtocol = Source_Protocol(); // 放电协议
-        smalla = Small_A_State(); // 小电流状态   0: 关    1: 开
+        smalla = Small_A_State();                                    // 小电流状态   0: 关    1: 开
+        protocol = Protocol();                                       // 快充协议
 
         Serial.print("EfuseMac: ");
         Serial.println(ESP.getEfuseMac(), HEX);
@@ -147,28 +146,28 @@ void loop()
         switch (EEPROM.read(4)) // 读取主题号
         {
         case 1:
-            Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle); // 14个
+            Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle); // 14个
             break;
         case 2:
-            Theme2(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+            Theme2(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
             break;
         case 3:
-            Theme3(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle, year, month, day, hour, minute, sec, week);
+            Theme3(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle, year, month, day, hour, minute, sec, week);
             break;
         case 4:
-            Theme4(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+            Theme4(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
             break;
         case 5:
-            Theme5(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle, year, month, day, hour, minute, sec, week);
+            Theme5(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle, year, month, day, hour, minute, sec, week);
             break;
         case 6:
-            Theme6(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+            Theme6(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
             break;
         case 7:
-            Theme7(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+            Theme7(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
             break;
         default:
-            Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+            Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
             break;
         }
         if (currentTime != 0)
@@ -201,28 +200,28 @@ void loop()
                             switch (EEPROM.read(4)) // 读取主题号
                             {
                             case 1:
-                                Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle); // 14个
+                                Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle); // 14个
                                 break;
                             case 2:
-                                Theme2(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+                                Theme2(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
                                 break;
                             case 3:
-                                Theme3(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle, year, month, day, hour, minute, sec, week);
+                                Theme3(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle, year, month, day, hour, minute, sec, week);
                                 break;
                             case 4:
-                                Theme4(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+                                Theme4(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
                                 break;
                             case 5:
-                                Theme5(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle, year, month, day, hour, minute, sec, week);
+                                Theme5(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle, year, month, day, hour, minute, sec, week);
                                 break;
                             case 6:
-                                Theme6(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+                                Theme6(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
                                 break;
                             case 7:
-                                Theme7(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+                                Theme7(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
                                 break;
                             default:
-                                Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+                                Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
                                 break;
                             }
                             bleKeyboard.begin(); // 打开蓝牙
@@ -244,9 +243,8 @@ void loop()
                                 EE_CycleCount(bat_per);                                      // 电池循环次数的判断
                                 cycle = EEPROM.read(2) / 2;                                  // 判断之后读取  电池循环次数    /2减缓次数  20-80
                                 PrintTime(&year, &month, &day, &hour, &minute, &sec, &week); // 获取时间数据     年 月 日 时 分 秒 周
-                                sinkProtocol = Sink_Protocol();                              // 充电协议
-                                // sourceProtocol = Source_Protocol(); // 放电协议
-                                smalla = Small_A_State(); // 小电流状态   0: 关    1: 开
+                                smalla = Small_A_State();                                    // 小电流状态   0: 关    1: 开
+                                protocol = Protocol();                                       // 协议
 
                                 // 打开或关闭小电流
                                 if ((smalla == 0 && EEPROM.read(8) == 1) || (smalla == 1 && EEPROM.read(8) == 0)) // smalla状态和蓝牙给的设置不一样     注意：eeprom默认255,故不能用 != 判断
@@ -256,50 +254,49 @@ void loop()
                                 switch (EEPROM.read(4)) // 读取主题号
                                 {
                                 case 1:
-                                    Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle); // 14个
+                                    Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle); // 14个
                                     break;
                                 case 2:
-                                    Theme2(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+                                    Theme2(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
                                     break;
                                 case 3:
-                                    Theme3(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle, year, month, day, hour, minute, sec, week);
+                                    Theme3(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle, year, month, day, hour, minute, sec, week);
                                     break;
                                 case 4:
-                                    Theme4(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+                                    Theme4(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
                                     break;
                                 case 5:
-                                    Theme5(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle, year, month, day, hour, minute, sec, week);
+                                    Theme5(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle, year, month, day, hour, minute, sec, week);
                                     break;
                                 case 6:
-                                    Theme6(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+                                    Theme6(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
                                     break;
                                 case 7:
-                                    Theme7(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+                                    Theme7(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
                                     break;
                                 default:
-                                    Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, sinkProtocol, sourceProtocol, smalla, ble_state, cycle);
+                                    Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);
                                     break;
                                 }
                                 // 整理第 1 次发送数据
                                 jsonBuffer1["agent"] = agent; // 代理人
                                 // jsonBuffer1["efuseMac"] = String(ESP.getEfuseMac(), HEX);
-                                jsonBuffer1["name"] = "AC1008";                  // 设备名称
-                                jsonBuffer1["software"] = software;              // 固件版本
-                                jsonBuffer1["hardware"] = hardware;              // 硬件版本
-                                jsonBuffer1["ic_temp"] = String(ic_temp, 2);     // ic温度
-                                jsonBuffer1["bat_ntc"] = String(ntc_temp, 2);    // 电池温度
-                                jsonBuffer1["bat_V"] = String(bat_v, 2);         // 电池电压
-                                jsonBuffer1["sys_outinv"] = String(sys_v, 2);    // 充放电压
-                                jsonBuffer1["bat_A"] = String(sys_a, 2);         // 电流
-                                jsonBuffer1["sys_w"] = String(sys_v * sys_a, 2); // 功率          后续小程序计算，或分段传输保留
-                                jsonBuffer1["A_C"] = ac_state;                   // AC口状态
-                                // jsonBuffer1["sys"] = sys_state;                  // 充放电状态       小程序无作用，后续小程序更新使用
+                                jsonBuffer1["name"] = "AC1008";               // 设备名称
+                                jsonBuffer1["software"] = software;           // 固件版本
+                                jsonBuffer1["hardware"] = hardware;           // 硬件版本
+                                jsonBuffer1["ic_temp"] = String(ic_temp, 2);  // ic温度
+                                jsonBuffer1["bat_ntc"] = String(ntc_temp, 2); // 电池温度
+                                jsonBuffer1["bat_V"] = String(bat_v, 2);      // 电池电压
+                                jsonBuffer1["sys_outinv"] = String(sys_v, 2); // 系统电压
+                                jsonBuffer1["bat_A"] = String(sys_a, 2);      // 充放电流
+                                // jsonBuffer1["sys_w"] = String(sys_v * sys_a, 2); // 功率          小程序计算，或分段传输保留
+                                jsonBuffer1["A_C"] = ac_state;           // AC口状态
+                                jsonBuffer1["sys"] = sys_state;          // 充放电状态
                                 jsonBuffer1["bat_m"] = String(bat_m, 2); // 电池实时容量
                                 jsonBuffer1["bat_per"] = bat_per;        // 百分比bat_per
                                 jsonBuffer1["bat_cir"] = cycle;          // 循环次数
-                                // jsonBuffer1["sinkProtocol"] = sinkProtocol;      // 充电协议       后续小程序更新分段传值
-                                // jsonBuffer1["sourceProtocol"] = sourceProtocol;  // 放电协议       后续小程序更新分段传值
-                                // jsonBuffer1["smalla"] = smalla;                  // 小电流状态      后续小程序更新分段传值
+                                jsonBuffer1["smalla"] = smalla;          // 小电流状态
+                                // jsonBuffer1["protocol"] = protocol;      // 快充协议       后续小程序更新分段传值
 
                                 String output1;
                                 serializeJson(jsonBuffer1, output1);
@@ -370,7 +367,7 @@ void loop()
                                     if (ota != 0)
                                         EEPROM.write(11, ota); // OTA更新  写1更新  更新处自动置零
                                     if (sec != 0 || minute != 0 || hour != 0 || day != 0 || month != 0 || year)
-                                        rtc.setTime(sec, minute, hour, day, month, year); // 更新彩屏时间
+                                        rtc.setTime(sec, minute, hour, day, month, year); // 更新彩屏时间, 内置时钟不用传星期
                                     EEPROM.write(8, smalla);                              // 写入小电流设置    (0 / 1)
                                     if (cycle == 1)
                                     {
@@ -391,7 +388,7 @@ void loop()
                                 Serial.println(EEPROM.read(4));
                                 Serial.print("LCDTime: ");
                                 Serial.println(EEPROM.read(5));
-                                Serial.print("BTtime: ");
+                                Serial.print("BLEtime: ");
                                 Serial.println(EE_BLETimeRead());
                                 Serial.print("SmallA: ");
                                 Serial.println(EEPROM.read(8));

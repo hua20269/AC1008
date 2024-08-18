@@ -4,12 +4,12 @@ void PrintTime(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *hour, uint
 {
     ESP32Time rtc; // offset in seconds GMT+1
     *year = rtc.getYear();
-    *month = rtc.getMonth() + 1;
+    *month = rtc.getMonth() + 1; //  (0-11)
     *day = rtc.getDay();
     *hour = rtc.getHour(true); // 24小时格式
     *minute = rtc.getMinute();
     *sec = rtc.getSecond();
-    *week = rtc.getDayofWeek();
+    *week = rtc.getDayofWeek(); // (0-6)   0为周日
 }
 
 //  Serial.println(rtc.getTime());          //  (String) 15:24:38

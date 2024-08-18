@@ -42,7 +42,7 @@ void Small_A_ON_or_OFF(); // 小电流开关
 void AC_OFF();            // 关闭所有输出口
 void AC_ON();             // 解除
 
-uint8_t Sink_Protocol(); // 快充协议
+uint8_t Protocol(); // 快充协议
 
 void SW6306init(); // sw6306初始化
 

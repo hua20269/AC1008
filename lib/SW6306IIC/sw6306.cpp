@@ -367,7 +367,7 @@ void AC_ON() // 解除
  * @param  0：None   1：QC2   2：QC3   3：QC3+   4：FCP   5：SCP   6：PD FIX   7：PD PPS   8：PE 1.1   9：PE 2.0   10：VOOC 1.0   11：VOOC 4.0   12：SuperVOOC   13：SFCP   14：AFC   15：UFCS
  * @return
  */
-uint8_t Sink_Protocol()
+uint8_t Protocol()
 {
     Serial.println("0:None   1:QC2   2:QC3   3:QC3+   4:FCP   5:SCP   6:PD FIX   7:PD PPS   8:PE 1.1   9:PE 2.0   10:VOOC 1.0   11:VOOC 4.0   12:SuperVOOC   13:SFCP   14:AFC   15:UFCS");
     Serial.print("--Sink_Protocol: ");
@@ -435,17 +435,17 @@ void SW6306init() // sw6306初始化
     if (I2C_Read(SW6306_address, 0x119) != 0x59)
         I2C_Write_16(SW6306_address, 0x119, 0x59); // 单口  多口空载时间设置     1：8s (min)   无线充空载时间设置   1：16s (min)
 
-    if (I2C_Read(SW6306_address, 0x107) != 0x1C || I2C_Read(SW6306_address, 0x100) != 0x8E) // 功率设置
+    if (I2C_Read(SW6306_address, 0x107) != 0x1B || I2C_Read(SW6306_address, 0x100) != 0x8E) // 功率设置
     {
-        I2C_Write_16(SW6306_address, 0x107, 0x1C); // 输入功率 设置 60W   0：27W    1：30W    2：35W    3：45W    4：60W    5：65W    6：100W    7：100W
+        I2C_Write_16(SW6306_address, 0x107, 0x1B); // 输入功率 设置 45w   0：27W    1：30W    2：35W    3：45W    4：60W    5：65W    6：100W    7：100W
         I2C_Write_16(SW6306_address, 0x100, 0x8E); // 输出功率 设置 100w  0：27W    1：30W    2：35W    3：45W    4：60W    5：65W    6：100W    7：reserved
     }
 
     if (I2C_Read(SW6306_address, 0x108) != 0x0C)   // 充电配置
         I2C_Write_16(SW6306_address, 0x108, 0x0C); // 设置电池类型4.2V    电池节数4节 0000 1100
 
-    if (I2C_Read(SW6306_address, 0x104) != 0x3)
-        I2C_Write_16(SW6306_address, 0x104, 0x3); // 三元锂电池欠压门限，N为电池节数     0：3.0V*N     1：2.6V*N     2：2.7V*N    3：2.8V*N    4：2.9V*N    5：3.1V*N    6：3.2V*N    7：3.3V*N
+    // if (I2C_Read(SW6306_address, 0x104) != 0x3)
+    //     I2C_Write_16(SW6306_address, 0x104, 0x3); // 三元锂电池欠压门限，N为电池节数     0：3.0V*N     1：2.6V*N     2：2.7V*N    3：2.8V*N    4：2.9V*N    5：3.1V*N    6：3.2V*N    7：3.3V*N
 
     // if (I2C_Read(SW6306_address, 0x10D) != 0x30)   // 充电配置6
     //     I2C_Write_16(SW6306_address, 0x10D, 0x30); // 涓流充电电流    0：100mA    1：200mA    2：300mA    3：400mA
