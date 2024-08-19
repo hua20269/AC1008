@@ -152,7 +152,7 @@ void PowerLOGO(String imgName) // 开机LOGO
  * @param bat_per 电量百分比
  * @param sys_state 充放电状态
  * @param ac_state 端口状态
- * @param protocol 快充协议  
+ * @param protocol 快充协议
  * @param smalla 小电流状态
  * @param ble_state 蓝牙状态
  * @param cycle 循环次数
@@ -291,47 +291,6 @@ void Theme1(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
         default:
             break;
         }
-        // }
-        // else if (sys_state == 1) // 放电
-        // {
-        // switch (  protocol) // 快放协议
-        // {
-        // case 0:
-        //     sprite1.drawString("None", 27, 115);
-        //     break;
-        // case 1:
-        //     sprite1.drawString("PD2.0", 27, 115);
-        //     break;
-        // case 2:
-        //     sprite1.drawString("PPS", 27, 115);
-        //     break;
-        // case 3:
-        //     sprite1.drawString("QC2.0", 27, 115);
-        //     break;
-        // case 4:
-        //     sprite1.drawString("QC3.0", 27, 115);
-        //     break;
-        // case 5:
-        //     sprite1.drawString("FCP", 27, 115);
-        //     break;
-        // case 6:
-        //     sprite1.drawString("PE2/1", 27, 115);
-        //     break;
-        // case 7:
-        //     sprite1.drawString("SFCP", 27, 115);
-        //     break;
-        // case 8:
-        //     sprite1.drawString("AFC", 27, 115);
-        //     break;
-        // case 9:
-        //     sprite1.drawString("SCP", 27, 115);
-        //     break;
-        // case 10:
-        //     sprite1.drawString("PD3.0", 27, 115);
-        //     break;
-        // default:
-        //     break;
-        // }
     }
     else
         sprite1.drawString("NULL", 27, 115);
@@ -458,7 +417,7 @@ void Theme1(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
  * @param bat_per 电量百分比
  * @param sys_state 充放电状态
  * @param ac_state 端口状态
- * @param protocol 快充协议  
+ * @param protocol 快充协议
  * @param smalla 小电流状态
  * @param ble_state 蓝牙状态
  * @param cycle 循环次数
@@ -697,7 +656,7 @@ void Theme2(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
  * @param bat_per 电量百分比
  * @param sys_state 充放电状态
  * @param ac_state 端口状态
- * @param protocol 快充协议  
+ * @param protocol 快充协议
  * @param smalla 小电流状态
  * @param ble_state 蓝牙状态
  * @param cycle 循环次数
@@ -774,22 +733,14 @@ void Theme3(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
     sprite1.loadFont(alibb);
 
     // AC端口
-    if (ac_state == 1 || ac_state == 4 || ac_state == 5)
-    {
-        if (ac_state == 1)
-        {
-            sprite1.fillRoundRect(206, 35, 30, 30, 5, TFT_RED); // A
-        }
-        if (ac_state == 4)
-        {
-            sprite1.fillRoundRect(206, 69, 30, 30, 5, TFT_RED); // C
-        }
-        if (ac_state == 5)
-        {
-            sprite1.fillRoundRect(206, 35, 30, 30, 5, TFT_RED); // A
-            sprite1.fillRoundRect(206, 69, 30, 30, 5, TFT_RED); // C
-        }
-    }
+    // 0:空闲   1:C2   2:C1   3:C1C2   4:A2   5:A2C2   6:A2C1   7:A2C1C2   8:A1   9:A1C2   10/A:A1C1   11/B:A1C1C2   12/C:A1A2   13/D:A1A2C2   14/E:A1A2C1   15/F:A1A2C1C2
+    // A1/A2口状态
+    if (ac_state >= 4)
+        sprite1.fillRoundRect(206, 35, 30, 30, 5, TFT_RED); // A
+    // C1口状态
+    if (ac_state == 2 || ac_state == 3 || ac_state == 6 || ac_state == 7 || ac_state == 10 || ac_state == 11 || ac_state == 14 || ac_state == 15)
+        sprite1.fillRoundRect(206, 69, 30, 30, 5, TFT_RED); // C
+
     // 放下面，盖上面方块
     sprite1.drawString("A", 221, 50);
     sprite1.drawString("C", 221, 84);
@@ -869,7 +820,7 @@ void Theme3(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
  * @param bat_per 电量百分比
  * @param sys_state 充放电状态
  * @param ac_state 端口状态
- * @param protocol 快充协议  
+ * @param protocol 快充协议
  * @param smalla 小电流状态
  * @param ble_state 蓝牙状态
  * @param cycle 循环次数
@@ -1050,59 +1001,72 @@ void Theme4(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
         break;
     }
     /**
-     * 以下 充放电 及 A  C  口 状态信息------------------------------------------------------------------------------------------
-     *   0 放电  1 充电    0x4
+     * 以下  A  C  口 状态信息------------------------------------------------------------------------------------------
+     *
      */
     // 充放状态   AC状态
     sprite1.loadFont(JianTi26);
     sprite1.setTextColor(TFT_PINK);
 
-    if (sys_state == 1)
+    // 0:空闲   1:C2   2:C1   3:C1C2   4:A2   5:A2C2   6:A2C1   7:A2C1C2   8:A1   9:A1C2   10/A:A1C1   11/B:A1C1C2   12/C:A1A2   13/D:A1A2C2   14/E:A1A2C1   15/F:A1A2C1C2
+    switch (ac_state) // 快充协议
     {
-        if (ac_state == 1)
-        {
-            // sprite1.fillRoundRect(210 - 12, 124 - 12, 24, 24, 5, TFT_CYAN);
-            sprite1.drawString("A", 210, 124);
-        }
-        if (ac_state == 4)
-        {
-            // sprite1.fillRoundRect(210 - 12, 124 - 12, 24, 24, 5, TFT_PINK);
-            sprite1.drawString("C", 210, 124);
-        }
-        if (ac_state == 5)
-        {
-            // sprite1.fillRoundRect(210 - 5 - 24, 124 - 12, 24, 24, 5, TFT_CYAN);
-            // sprite1.fillRoundRect(210 + 5, 124 - 12, 24, 24, 5, TFT_PINK);
-            sprite1.drawString("A", 210 - 12, 124);
-            sprite1.drawString("C", 210 + 12, 124);
-        }
-    }
-    else if (sys_state == 2)
-    {
-        if (ac_state == 1)
-        {
-            // sprite1.fillRoundRect(210 - 12, 124 - 12, 24, 24, 5, TFT_CYAN);
-            sprite1.drawString("A", 210, 124);
-        }
-        if (ac_state == 4)
-        {
-            // sprite1.fillRoundRect(210 - 12, 124 - 12, 24, 24, 5, TFT_PINK);
-            sprite1.drawString("C", 210, 124);
-        }
-        if (ac_state == 5)
-        {
-            // sprite1.fillRoundRect(210 - 5 - 24, 124 - 12, 24, 24, 5, TFT_CYAN);
-            // sprite1.fillRoundRect(210 + 5, 124 - 12, 24, 24, 5, TFT_PINK);
-            sprite1.drawString("A", 210 - 12, 124);
-            sprite1.drawString("C", 210 + 12, 124);
-        }
-    }
-    else
-    {
+    case 0:
         sprite1.loadFont(KaiTi18); // 设置字体
-        sprite1.setTextColor(TFT_WHITE);
-        sprite1.drawString("空闲", 210, 124); // 态
+        sprite1.drawString("空闲", 210, 124);
+        break;
+    case 1:
+        sprite1.drawString("L", 210, 124);
+        break;
+    case 2:
+        sprite1.drawString("C", 210, 124);
+        break;
+    case 3:
+        sprite1.drawString("C L", 210, 124);
+        break;
+    case 4:
+        sprite1.drawString("A2", 210, 124);
+        break;
+    case 5:
+        sprite1.drawString("A L", 210, 124);
+        break;
+    case 6:
+        sprite1.drawString("A C", 210, 124);
+        break;
+    case 7:
+        sprite1.drawString("ACL", 210, 124);
+        break;
+    case 8:
+        sprite1.drawString("A1", 210, 124);
+        break;
+    case 9:
+        sprite1.drawString("A L", 210, 124);
+        break;
+    case 10:
+        sprite1.drawString("A C", 210, 124);
+        break;
+    case 11:
+        sprite1.drawString("ACL", 210, 124);
+        break;
+    case 12:
+        sprite1.drawString("A1A2", 210, 124);
+        break;
+    case 13:
+        sprite1.drawString("AAL", 210, 124);
+        break;
+    case 14:
+        sprite1.drawString("AAC", 210, 124);
+        break;
+    case 15:
+        sprite1.drawString("AACL", 203, 89);
+        break;
+
+    default:
+        sprite1.loadFont(KaiTi18); // 设置字体
+        sprite1.drawString("空闲", 210, 124);
+        break;
     }
+
     sprite1.pushSprite(0, 0); // 显示在画布1上
     sprite1.deleteSprite();   // 删除精灵
     sprite1.unloadFont();     // 释放加载字体
@@ -1119,7 +1083,7 @@ void Theme4(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
  * @param bat_per 电量百分比
  * @param sys_state 充放电状态
  * @param ac_state 端口状态
- * @param protocol 快充协议  
+ * @param protocol 快充协议
  * @param smalla 小电流状态
  * @param ble_state 蓝牙状态
  * @param cycle 循环次数
@@ -1280,86 +1244,69 @@ void Theme5(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
     sprite1.loadFont(JianTi26);
     sprite1.setTextColor(TFT_CYAN);
     // 快充协议
-    //* bit:7 PD版本指示 0: PD2.0 1: PD3.0   注意此指示只在PD沟通后有效
-    //* bit:6-4 充电sink快充协议指示 0: 非快充  * 1: PD sink 2: / 3: HV sink 4: AFC sink 5: FCP sink 6: SCP sink 7: PE1.1 sink  (2:PD3.0)
-    //* bit:3-0 放电source快充协议指示 0: 非快充 1: PD source 2: PPS source 3: QC2.0 source 4: QC3.0 source 5: FCP source
-    //                          6: PE2.0 /1.1 source 7: SFCP source 8: AFC source 9: SCP source 10-15: reserved(10:PD3.0)
-    if (sys_state == 2) // 充电
+    // bit 3-0 快充指示
+    // 0：None   1：QC2   2：QC3   3：QC3+   4：FCP   5：SCP   6：PD FIX   7：PD PPS   8：PE 1.1   9：PE 2.0   10：VOOC 1.0   11：VOOC 4.0   12：SuperVOOC   13：SFCP   14：AFC   15：UFCS
+    // if (sys_state == 2) // 充电
+    if (sys_state == 2 || sys_state == 1) // 充电
     {
         switch (protocol) // 快充协议
         {
         case 0:
-            sprite1.drawString("NOT", 27, 48 - 2);
+            sprite1.drawString("None", 27, 48 - 2);
             break;
         case 1:
-            sprite1.drawString("PD2.0", 27, 48 - 2);
+            sprite1.drawString("QC2.0", 27, 48 - 2);
             break;
         case 2:
-            sprite1.drawString("PD3.0", 27, 48 - 2);
+            sprite1.drawString("QC3.0", 27, 48 - 2);
             break;
         case 3:
-            sprite1.drawString("HV", 27, 48 - 2);
+            sprite1.drawString("QC3+", 27, 48 - 2);
             break;
         case 4:
-            sprite1.drawString("AFC", 27, 48 - 2);
-            break;
-        case 5:
             sprite1.drawString("FCP", 27, 48 - 2);
             break;
-        case 6:
+        case 5:
             sprite1.drawString("SCP", 27, 48 - 2);
             break;
+        case 6:
+            sprite1.drawString("FIX", 27, 48 - 2);
+            break;
         case 7:
+            sprite1.drawString("PPS", 27, 48 - 2);
+            break;
+        case 8:
             sprite1.drawString("PE1.1", 27, 48 - 2);
+            break;
+        case 9:
+            sprite1.drawString("PE2.0", 27, 48 - 2);
+            break;
+        case 10:
+            sprite1.drawString("VOOC1", 27, 48 - 2);
+            break;
+        case 11:
+            sprite1.drawString("VOOC4", 27, 48 - 2);
+            break;
+        case 12:
+            sprite1.drawString("SVOOC", 27, 48 - 2);
+            break;
+        case 13:
+            sprite1.drawString("SFCP", 27, 48 - 2);
+            break;
+        case 14:
+            sprite1.drawString("AFC", 27, 48 - 2);
+            break;
+        case 15:
+            sprite1.drawString("UFCS", 27, 48 - 2);
             break;
 
         default:
             break;
         }
     }
-    else if (sys_state == 1) // 放电
-    {
-        switch (  protocol) // 快放协议
-        {
-        case 0:
-            sprite1.drawString("NOT", 27, 48 - 2);
-            break;
-        case 1:
-            sprite1.drawString("PD2.0", 27, 48 - 2);
-            break;
-        case 2:
-            sprite1.drawString("PPS", 27, 48 - 2);
-            break;
-        case 3:
-            sprite1.drawString("QC2.0", 27, 48 - 2);
-            break;
-        case 4:
-            sprite1.drawString("QC3.0", 27, 48 - 2);
-            break;
-        case 5:
-            sprite1.drawString("FCP", 27, 48 - 2);
-            break;
-        case 6:
-            sprite1.drawString("PE2/1", 27, 48 - 2);
-            break;
-        case 7:
-            sprite1.drawString("SFCP", 27, 48 - 2);
-            break;
-        case 8:
-            sprite1.drawString("AFC", 27, 48 - 2);
-            break;
-        case 9:
-            sprite1.drawString("SCP", 27, 48 - 2);
-            break;
-        case 10:
-            sprite1.drawString("PD3.0", 27, 48 - 2);
-            break;
-        default:
-            break;
-        }
-    }
     else
         sprite1.drawString("NULL", 27, 48 - 2);
+
     // sprintf(draw_num, "%.2f℃", ic_temp);      // 芯片 温度
     // sprite1.drawString(draw_num, 27, 48 - 2); // 芯片 位置
     // 功率
@@ -1499,7 +1446,7 @@ void Theme5(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
  * @param bat_per 电量百分比
  * @param sys_state 充放电状态
  * @param ac_state 端口状态
- * @param protocol 快充协议  
+ * @param protocol 快充协议
  * @param smalla 小电流状态
  * @param ble_state 蓝牙状态
  * @param cycle 循环次数
@@ -1520,87 +1467,77 @@ void Theme6(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
 
     sprite1.loadFont(JianTi26);
     sprite1.setTextColor(TFT_WHITE);
+
     if (sys_state == 2) // 充电
-    {
         sprite1.drawString("IN", 90, 0);
+    else if (sys_state == 1) // 放电
+        sprite1.drawString("OUT", 90, 0);
+    else
+        sprite1.drawString("NO", 90, 0);
+
+    // 快充协议
+    // bit 3-0 快充指示
+    // 0：None   1：QC2   2：QC3   3：QC3+   4：FCP   5：SCP   6：PD FIX   7：PD PPS   8：PE 1.1   9：PE 2.0   10：VOOC 1.0   11：VOOC 4.0   12：SuperVOOC   13：SFCP   14：AFC   15：UFCS
+    // if (sys_state == 2) // 充电
+    if (sys_state == 2 || sys_state == 1) // 充电
+    {
         switch (protocol) // 快充协议
         {
         case 0:
-            sprite1.drawString("NOT", 0, 0);
+            sprite1.drawString("None", 0, 0);
             break;
         case 1:
-            sprite1.drawString("PD2.0", 0, 0);
+            sprite1.drawString("QC2.0", 0, 0);
             break;
         case 2:
-            sprite1.drawString("PD3.0", 0, 0);
+            sprite1.drawString("QC3.0", 0, 0);
             break;
         case 3:
-            sprite1.drawString("HV", 0, 0);
+            sprite1.drawString("QC3+", 0, 0);
             break;
         case 4:
-            sprite1.drawString("AFC", 0, 0);
-            break;
-        case 5:
             sprite1.drawString("FCP", 0, 0);
             break;
-        case 6:
+        case 5:
             sprite1.drawString("SCP", 0, 0);
             break;
+        case 6:
+            sprite1.drawString("FIX", 0, 0);
+            break;
         case 7:
+            sprite1.drawString("PPS", 0, 0);
+            break;
+        case 8:
             sprite1.drawString("PE1.1", 0, 0);
+            break;
+        case 9:
+            sprite1.drawString("PE2.0", 0, 0);
+            break;
+        case 10:
+            sprite1.drawString("VOOC1", 0, 0);
+            break;
+        case 11:
+            sprite1.drawString("VOOC4", 0, 0);
+            break;
+        case 12:
+            sprite1.drawString("SVOOC", 0, 0);
+            break;
+        case 13:
+            sprite1.drawString("SFCP", 0, 0);
+            break;
+        case 14:
+            sprite1.drawString("AFC", 0, 0);
+            break;
+        case 15:
+            sprite1.drawString("UFCS", 0, 0);
             break;
 
         default:
             break;
         }
     }
-    else if (sys_state == 1) // 放电
-    {
-        sprite1.drawString("OUT", 90, 0);
-        switch (  protocol) // 快放协议
-        {
-        case 0:
-            sprite1.drawString("NOT", 0, 0);
-            break;
-        case 1:
-            sprite1.drawString("PD2.0", 0, 0);
-            break;
-        case 2:
-            sprite1.drawString("PPS", 0, 0);
-            break;
-        case 3:
-            sprite1.drawString("QC2.0", 0, 0);
-            break;
-        case 4:
-            sprite1.drawString("QC3.0", 0, 0);
-            break;
-        case 5:
-            sprite1.drawString("FCP", 0, 0);
-            break;
-        case 6:
-            sprite1.drawString("PE2/1", 0, 0);
-            break;
-        case 7:
-            sprite1.drawString("SFCP", 0, 0);
-            break;
-        case 8:
-            sprite1.drawString("AFC", 0, 0);
-            break;
-        case 9:
-            sprite1.drawString("SCP", 0, 0);
-            break;
-        case 10:
-            sprite1.drawString("PD3.0", 0, 0);
-            break;
-        default:
-            break;
-        }
-    }
     else
-    {
-        sprite1.drawString("NULL", 0, 0); // 协议
-        sprite1.drawString("NO", 90, 0);
-    }
+        sprite1.drawString("NULL", 0, 0);
 
     sprite1.setTextDatum(CC_DATUM); // 字体中部中间(原点)
 
@@ -1678,7 +1615,7 @@ void Theme6(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
  * @param bat_per 电量百分比
  * @param sys_state 充放电状态
  * @param ac_state 端口状态
- * @param protocol 快充协议  
+ * @param protocol 快充协议
  * @param smalla 小电流状态
  * @param ble_state 蓝牙状态
  * @param cycle 循环次数
@@ -1772,7 +1709,7 @@ void Theme7(float bat_v, float sys_v, float sys_a, float ic_temp, float ntc_temp
     }
     else if (sys_state == 1) // 放电
     {
-        switch (  protocol) // 快放协议
+        switch (protocol) // 快放协议
         {
         case 0:
             sprite1.drawString("NOT", 120, 0);

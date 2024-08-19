@@ -55,36 +55,87 @@ uint8_t I2C_Write_16(uint8_t mcuAddr, uint16_t regAddr, uint8_t senddate)
  */
 uint16_t I2C_Read(uint8_t mcuAddr, uint16_t regAddr)
 {
-    uint8_t t = 200;
+    uint8_t t = 32; // 16
     uint8_t ret = 0;
     uint16_t getdate;
-    /*  Write Device Address */
-    Wire.beginTransmission(mcuAddr);
-    /*  Write Subaddresses */
-    Wire.write(regAddr);
+    Wire.beginTransmission(mcuAddr); // 设备地址 写入
+    Wire.write(regAddr);             // 寄存器地址 写入
     ret = Wire.endTransmission(false);
-    if (ret == 0)
+    if (ret == 0) // 判断是否成功传输
     {
-        // Serial.println("Read-ok!");
+        Wire.requestFrom(mcuAddr, (size_t)1, (bool)1); // 请求数据
+        /* 5. 读出AT24C02返回的值，成功读取后写入缓存变量处，读取失败返回失败码 */
+        while (!Wire.available()) // 读取数据非一个字节遍历
+        {
+            t--;
+            delay(1);
+            if (t == 0)
+                return 1;
+        }
+        getdate = Wire.read(); // 读取数据
+        return getdate;
     }
     else
     {
-        Serial.println("Read-NO!");
+        // 根据不同的错误代码进行处理
+        Serial.print("Error: Transmission failed with code ");
+        Serial.println(ret);
+        return 0;
     }
-    Wire.requestFrom(mcuAddr, (size_t)1, (bool)1);
-    /* 5. 读出AT24C02返回的值，成功读取后写入缓存变量处，读取失败返回失败码 */
-    while (!Wire.available())
-    {
-        t--;
-        delay(1);
-        if (t == 0)
-        {
-            return 1;
-        }
-    }
-    getdate = Wire.read(); // receive a byte as character
-    return getdate;
 }
+// I2C读取事例
+// #include <Wire.h>
+
+// void setup()
+// {
+//     Wire.begin();       // 初始化I2C通信
+//     Serial.begin(9600); // 初始化串口通信，用于输出数据
+// }
+
+// void loop()
+// {
+//     int sensorAddress = 0x48; // I2C设备地址
+//     int numBytes = 1;         // 要读取的字节数
+
+//     Wire.beginTransmission(sensorAddress);
+//     Wire.write(0); // 如果设备需要寄存器地址，可以在这里写入
+//     byte transmissionStatus = Wire.endTransmission();
+
+//     if (transmissionStatus == 0)
+//     {                                              // 判断是否成功传输
+//         Wire.requestFrom(sensorAddress, numBytes); // 请求数据
+
+//         if (Wire.available() == numBytes)
+//         {                                   // 确认是否有足够数据可读取
+//             byte temperature = Wire.read(); // 读取数据
+//             Serial.print("Temperature: ");
+//             Serial.println(temperature);
+
+//             // 判断温度是否超过阈值
+//             int threshold = 25; // 阈值设为25度
+//             if (temperature > threshold)
+//             {
+//                 Serial.println("Temperature is above threshold!");
+//             }
+//             else
+//             {
+//                 Serial.println("Temperature is below threshold.");
+//             }
+//         }
+//         else
+//         {
+//             Serial.println("Error: Not enough data available.");
+//         }
+//     }
+//     else
+//     {
+//         // 根据不同的错误代码进行处理
+//         Serial.print("Error: Transmission failed with code ");
+//         Serial.println(transmissionStatus);
+//     }
+
+//     delay(1000); // 每秒读取一次
+// }
 
 /**
  * @brief REG0x24: I2C使能
@@ -287,6 +338,7 @@ uint8_t Battery_Per()
 uint8_t SYS_State()
 {
     uint8_t sys_state = I2C_Read(SW6306_address, 0x18) >> 4;
+    sys_state = sys_state & 0x3;
     Serial.print("|--SYS_State: ");
     Serial.println(sys_state);
     return sys_state;
@@ -416,6 +468,20 @@ void SW6306init() // sw6306初始化
     //     I2C_Write(SW6306_address, 0x45, 0x64); // 输入 设置100w   (1-100w)
     //     I2C_Write(SW6306_address, 0x4F, 0x64); // 输出 设置100w   (1-100w)
     // }
+    if (Battery_V() >= 12.4) // 电池电压大于等于12.4V，则设置涓流充电电压为系统自动控制
+    {
+        if ((I2C_Read(SW6306_address, 0X50) != 0X0))
+        {
+            I2C_Write(SW6306_address, 0x50, 0x0); // 涓流充电电压为系统自动控制
+        }
+    }
+    else // 电池电压低于12.4V，则设置涓流充电电压为9V
+    {
+        if ((I2C_Read(SW6306_address, 0X50) != 0X09))
+        {
+            I2C_Write(SW6306_address, 0x50, 0x09); // 涓流充电申请电压为9V
+        }
+    }
     //-----------------------------------------------------------------------------------------------------------------------
 
     Serial.println("-----------------------------------------------------------------0x15 --18----2A----2b---- 2c--");
@@ -426,12 +492,25 @@ void SW6306init() // sw6306初始化
     Serial.println(I2C_Read(SW6306_address, 0x2C));
     I2C_Write(SW6306_address, 0x15, 0xFF);
     I2C_Write_100_156(); // 100-156 寄存器写使能
+
     //
+
+    Serial.println("-----------------------0x104------------------------");
+    Serial.println(I2C_Read(SW6306_address, 0x104));
+    if (I2C_Read(SW6306_address, 0x104) != 0x60)   // 6-4 UVLO迟滞，N为电池节数         0：0.4V*N     1：0.1V*N     2：0.2V*N     3：0.3V*N     4：0.5V*N     5：0.6V*N     6：0V     7：0.8V*N
+        I2C_Write_16(SW6306_address, 0x104, 0x60); // 三元锂电池欠压门限，N为电池节数     0：3.0V*N     1：2.6V*N     2：2.7V*N     3：2.8V*N     4：2.9V*N     5：3.1V*N     6：3.2V*N     7：3.3V*N
+
+    if (I2C_Read(SW6306_address, 0x10D) != 0x30)
+        I2C_Write_16(SW6306_address, 0x10D, 0x30); // 设置涓流电流400ma    0：100mA    1：200mA    2：300mA    3：400mA
+
     if (I2C_Read(SW6306_address, 0x11D) != 0x80)
         I2C_Write_16(SW6306_address, 0x11D, 0x80); // C2口配置为B/L口模式
 
     if (I2C_Read(SW6306_address, 0x11B) != 0x30)
         I2C_Write_16(SW6306_address, 0x11B, 0X30); // 小电流使能
+
+    if (I2C_Read(SW6306_address, 0x14E) != 0x10)
+        I2C_Write_16(SW6306_address, 0x14E, 0X10); // 容量学习使能       bit 4      0：禁止      1：使能      容量学习使能后，触发UVLO后开始充电就开始容量学习
 
     if (I2C_Read(SW6306_address, 0x119) != 0x59)
         I2C_Write_16(SW6306_address, 0x119, 0x59); // 单口  多口空载时间设置     1：8s (min)   无线充空载时间设置   1：16s (min)
@@ -444,12 +523,6 @@ void SW6306init() // sw6306初始化
 
     if (I2C_Read(SW6306_address, 0x108) != 0x0C)   // 充电配置
         I2C_Write_16(SW6306_address, 0x108, 0x0C); // 设置电池类型4.2V    电池节数4节 0000 1100
-
-    // if (I2C_Read(SW6306_address, 0x104) != 0x3)
-    //     I2C_Write_16(SW6306_address, 0x104, 0x3); // 三元锂电池欠压门限，N为电池节数     0：3.0V*N     1：2.6V*N     2：2.7V*N    3：2.8V*N    4：2.9V*N    5：3.1V*N    6：3.2V*N    7：3.3V*N
-
-    // if (I2C_Read(SW6306_address, 0x10D) != 0x30)   // 充电配置6
-    //     I2C_Write_16(SW6306_address, 0x10D, 0x30); // 涓流充电电流    0：100mA    1：200mA    2：300mA    3：400mA
 
     I2C_Write_16(SW6306_address, 0x1FF, 0x0); // 切换回 0-100 写使能
 }

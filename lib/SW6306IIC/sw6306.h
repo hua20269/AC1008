@@ -12,7 +12,7 @@ typedef unsigned short int uint16_t;
 
 // define MAX_AES_BUFFER_SIZ 1
 // ntc相关参数
-#define BX 3435 // B值
+#define BX 3450 // B值
 #define T25 298.15
 #define R25 10000
 #ifndef uint16_t

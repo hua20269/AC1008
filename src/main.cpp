@@ -11,6 +11,7 @@
 #include <esp_task_wdt.h>
 #include "rtc_time.h" //内置时钟
 #include "AgentConfig.h"
+// #include <esp32-hal.h>
 
 #define BUTTON_PIN_BITMASK 0x0010 // GPIOs 4    io4 按钮
 
@@ -141,6 +142,10 @@ void loop()
 
         Serial.print("EfuseMac: ");
         Serial.println(ESP.getEfuseMac(), HEX);
+
+        // float temperature = esp32.mcu_temperature();
+        // Serial.print("esp32_Temp: ");
+        // Serial.println(temperature);
 
         delay(20);
     beijing0:
@@ -383,9 +388,9 @@ void loop()
                                     Rxdata = ""; // 清空
                                     Serial.println("----------------------");
                                 }
-                                Serial.print("Topic: ");
+                                Serial.print("Topic:  ");
                                 Serial.println(EEPROM.read(3));
-                                Serial.print("Theme: ");
+                                Serial.print("Theme:  ");
                                 Serial.println(EEPROM.read(4));
                                 Serial.print("LCDTime: ");
                                 Serial.println(EEPROM.read(5));
@@ -393,7 +398,7 @@ void loop()
                                 Serial.println(EE_BLETimeRead());
                                 Serial.print("SmallA: ");
                                 Serial.println(EEPROM.read(8));
-                                Serial.print("OTA: ");
+                                Serial.print("OTA:    ");
                                 Serial.println(EEPROM.read(11));
                                 Serial.print("AC_OFF: ");
                                 Serial.println(EEPROM.read(12));
@@ -414,8 +419,9 @@ void loop()
                                             delay(1000);
                                             if (digitalRead(4) == LOW)
                                             {
+                                                offscreen(); // 息屏    给个假提示
+                                                delay(1000); // 防止关闭蓝牙后  没及时松开 再次点亮屏幕
                                                 esp_deep_sleep_start();
-                                                break;
                                             }
                                             continue;
                                         }
@@ -433,26 +439,25 @@ void loop()
         }
     }
     // 屏幕进入睡眠
-    if (digitalRead(27) == 1)
+    offscreen();              // 熄灭屏幕
+    if (digitalRead(27) == 1) // 空闲状态
     {
         esp_deep_sleep_start(); // 睡眠
     }
-    offscreen(); // 熄灭屏幕
-    if (digitalRead(27) == 0)
+
+    while (digitalRead(27) == 0)
     {
-        while (1)
+        if (digitalRead(4) == 0) // 按 按钮
         {
-            if (digitalRead(4) == 0) // 按 按钮
-            {
-                onscreen(); // 开启屏幕
-                break;
-            }
-            if (digitalRead(27) == 1) // sw6306工作
-            {
-                onscreen(); // 开启屏幕
-                break;
-            }
+            onscreen(); // 开启屏幕
+            break;
         }
+        if (digitalRead(27) == 1) // 停止工作
+        {
+            onscreen(); // 开启屏幕
+            break;
+        }
+        vTaskDelay(300);
     }
 }
 void Task_OTA(void *pvParameters)
