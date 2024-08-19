@@ -2,7 +2,7 @@
 
 void PrintTime(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *hour, uint8_t *minute, uint8_t *sec, uint8_t *week)
 {
-    ESP32Time rtc; // offset in seconds GMT+1
+    ESP32Time rtc; // 读时间不要偏移  ESP32Time rtc(3600); 
     *year = rtc.getYear();
     *month = rtc.getMonth() + 1; //  (0-11)
     *day = rtc.getDay();

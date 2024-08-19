@@ -13,9 +13,9 @@
 // 默认 公司
 #define agent "IStore"      // 代理名   蓝牙给小程序传值    Intelligent store
 #define imgName ""      // 开机LOGO
-#define software "v4.0" // 固件版本
-#define hardware "v3.0" // 硬件版本
-#define upUrl "http://bin.bemfa.com/b/3BcYWMzNDRjODg3OGFiNWQwMWNlNDFkMjNiMmRjZjRmNzQ=AC225.bin"
+#define software "v4.9" // 固件版本   v年.月  (发布日期)    年从2021开始  用1表示
+#define hardware "v4.8" // 硬件版本   v年.月  (量产日期)
+#define upUrl "http://bin.bemfa.com/b/3BcYWMzNDRjODg3OGFiNWQwMWNlNDFkMjNiMmRjZjRmNzQ=AC1008.bin"
 
 // 代理：李东祥
 //  #define agent "LiDongXiang"

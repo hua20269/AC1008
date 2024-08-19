@@ -127,8 +127,9 @@ uint16_t ADC_Data()
 
     // ADCvalue = (I2C_Read(SW6306_address, 0x31) + I2C_Read(SW6306_address, 0x32) << 8); // adc数据的合并   低 8 位必须先读
 
+    Serial.print(r_buffer[0], HEX);
+    Serial.print("\t");
     Serial.println(r_buffer[1], HEX);
-    Serial.println(r_buffer[0], HEX);
 
     Serial.print("ADC_Data: ");
     Serial.println(ADCvalue);
@@ -144,7 +145,7 @@ float SYS_V()
     I2C_Write(SW6306_address, 0x30, 0x0); // 选择系统 输入/输出 电压
     float value;
     value = ADC_Data() * 0.008; // 系统电压 = adc * 0.008V
-    Serial.print("--SYS_V: ");
+    Serial.print("|--SYS_V: ");
     Serial.println(value);
     return value;
 }
@@ -157,7 +158,7 @@ float SYS_A()
     I2C_Write(SW6306_address, 0x30, 0x1); // 选择系统 输入/输出 电流
     float value;
     value = ADC_Data() * 0.004; // 系统输入/输出IBUS电流 = adc * 0.004V
-    Serial.print("--SYS_A: ");
+    Serial.print("|--SYS_A: ");
     Serial.println(value);
     return value;
 }
@@ -170,7 +171,7 @@ float Battery_V()
     I2C_Write(SW6306_address, 0x30, 0x2); // 选择电池电压
     float value;
     value = ADC_Data() * 0.007; // 电池电压 = adc * 0.007V
-    Serial.print("--Battery_V: ");
+    Serial.print("|--Battery_V: ");
     Serial.println(value);
     return value;
 }
@@ -183,7 +184,7 @@ float Battery_A()
     I2C_Write(SW6306_address, 0x30, 0x3); // 选择电池 输入/输出 电流
     float value;
     value = ADC_Data() * 0.005; // 电池电流 = adc * 0.005A
-    Serial.print("--Battery_A: ");
+    Serial.print("|--Battery_A: ");
     Serial.println(value);
     return value;
 }
@@ -196,7 +197,7 @@ float IC_Temp()
 {
     I2C_Write(SW6306_address, 0x30, 0x9);       // 选择 芯片温度
     float ic_temp = (ADC_Data() - 1839) / 6.82; // 芯片温度 = (adc-1839) / 6.82℃
-    Serial.print("--IC_Temp: ");
+    Serial.print("|--IC_Temp: ");
     Serial.println(ic_temp);
     return ic_temp;
 }
@@ -236,7 +237,7 @@ float NTC_Temp()
     ntc_temp = 1 / ntc_temp;
     ntc_temp -= 273.15;
     ntc_temp += 0.5;
-    Serial.print("--NTC_Temp: ");
+    Serial.print("|--NTC_Temp: ");
     Serial.println(ntc_temp);
     return ntc_temp;
 }
@@ -254,11 +255,11 @@ float NTC_Temp()
  */
 float Battery_Volume()
 {
-    Serial.print("--Battery_Volume_Max: X ");
+    Serial.print("|--Battery_Volume_Max: X ");
     Serial.println((((I2C_Read(SW6306_address, 0x86) + I2C_Read(SW6306_address, 0x87) << 8)) & 0x0FFF) * 0.3262236);                                                  // 库仑计最大容量    数据不对
     float battery_volume = (((I2C_Read(SW6306_address, 0x88) + I2C_Read(SW6306_address, 0x89) << 8) + I2C_Read(SW6306_address, 0x8A) << 16) & 0xFFFFFF) * 0.00007964; // 库仑计当前容量
 
-    Serial.print("--Battery_Volume: ");
+    Serial.print("|--Battery_Volume: ");
     Serial.println(battery_volume);
     return battery_volume;
 }
@@ -271,7 +272,7 @@ float Battery_Volume()
 uint8_t Battery_Per()
 {
     uint8_t battery_per = I2C_Read(SW6306_address, 0x94); // 电池电量百分比
-    Serial.print("--Battery_Per: ");
+    Serial.print("|--Battery_Per: ");
     Serial.println(battery_per);
     return battery_per;
 }
@@ -286,7 +287,7 @@ uint8_t Battery_Per()
 uint8_t SYS_State()
 {
     uint8_t sys_state = I2C_Read(SW6306_address, 0x18) >> 4;
-    Serial.print("--SYS_State: ");
+    Serial.print("|--SYS_State: ");
     Serial.println(sys_state);
     return sys_state;
 }
@@ -303,7 +304,7 @@ uint8_t SYS_State()
 uint8_t AC_State()
 {
     uint8_t ac_state = I2C_Read(SW6306_address, 0x1D) & 0XF; // 端口状态
-    Serial.print("--AC_State: ");
+    Serial.print("|--AC_State: ");
     Serial.println(ac_state);
     return ac_state;
 }
@@ -317,7 +318,7 @@ uint8_t AC_State()
 uint8_t Small_A_State()
 {
     uint8_t smalla_state = I2C_Read(SW6306_address, 0x12) >> 1; // 小电流状态
-    Serial.print("--Small_A_State: ");
+    Serial.print("|--Small_A_State: ");
     Serial.println(smalla_state);
     return smalla_state;
 }
@@ -350,14 +351,14 @@ void AC_OFF()
 {
     I2C_Write(SW6306_address, 0x28, 0X8); // 此bit不会自动清零
 
-    Serial.print("--AC_OFF");
+    Serial.print("|--AC_OFF");
 }
 void AC_ON() // 解除
 {
     if (I2C_Read(SW6306_address, 0x28) & 0x8 == 8) // bit3
     {
         I2C_Write(SW6306_address, 0x28, 0X0);
-        Serial.print("--AC_ON");
+        Serial.print("|--AC_ON");
     }
 }
 
@@ -369,8 +370,8 @@ void AC_ON() // 解除
  */
 uint8_t Protocol()
 {
-    Serial.println("0:None   1:QC2   2:QC3   3:QC3+   4:FCP   5:SCP   6:PD FIX   7:PD PPS   8:PE 1.1   9:PE 2.0   10:VOOC 1.0   11:VOOC 4.0   12:SuperVOOC   13:SFCP   14:AFC   15:UFCS");
-    Serial.print("--Sink_Protocol: ");
+    Serial.println("  0:None   1:QC2   2:QC3   3:QC3+   4:FCP   5:SCP   6:PD FIX   7:PD PPS   8:PE 1.1   9:PE 2.0   10:VOOC 1.0   11:VOOC 4.0   12:SuperVOOC   13:SFCP   14:AFC   15:UFCS");
+    Serial.print("|--Sink_Protocol: ");
     Serial.println(I2C_Read(SW6306_address, 0x0F) & 0x0F);
 
     return I2C_Read(SW6306_address, 0x0F) & 0x0F; // 快充协议

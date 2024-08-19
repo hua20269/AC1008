@@ -105,16 +105,17 @@ void loop()
 {
     Serial.printf("loop on core: ");
     Serial.println(xPortGetCoreID());
-    float bat_v, bat_a, sys_v, sys_a, ic_temp, ntc_temp, bat_m;     // 电池电压  电池电流  系统电压  系统电流   ic温度    电池温度  电池实时容量
-    uint8_t bat_per, sys_state, ac_state, protocol, sourceProtocol; // 电池百分比   系统充放电状态   系统输出口状态   快充协议  快放协议
-    uint8_t smalla;                                                 // 小电流  // 共用 ble set 蓝牙设置
+    // sw6306
+    float bat_v, bat_a, sys_v, sys_a, ic_temp, ntc_temp, bat_m; // 电池电压  电池电流  系统电压  系统电流   ic温度    电池温度  电池实时容量
+    uint8_t bat_per, sys_state, ac_state, protocol;             // 电池百分比   系统充放电状态   系统输出口状态   快充协议
+    uint8_t smalla;                                             // 小电流  // 共用 ble set 蓝牙设置
+    uint16_t cycle = 0;                                         // 实际uint8_t循环次数     暂用uint16_t预留
 
     // 时间
     uint16_t year;                               // 年份
     uint8_t month, day, hour, minute, sec, week; //  月  日  时  分  秒  星期
 
     // main 当前文件用
-    uint16_t cycle = 0;    // uint8_t 循环次数     暂用uint16_t预留
     uint8_t ble_state = 0; // 蓝牙开关状态
 
     uint8_t currentTime = EEPROM.read(5); // 睡眠时间
@@ -254,7 +255,7 @@ void loop()
                                 switch (EEPROM.read(4)) // 读取主题号
                                 {
                                 case 1:
-                                    Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle); // 14个
+                                    Theme1(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle); // 13个
                                     break;
                                 case 2:
                                     Theme2(bat_v, sys_v, sys_a, ic_temp, ntc_temp, bat_m, bat_per, sys_state, ac_state, protocol, smalla, ble_state, cycle);

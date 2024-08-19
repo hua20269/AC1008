@@ -6,6 +6,8 @@
 
 extern int a, b;
 
+// 固件链接，在巴法云控制台复制、粘贴到这里即可
+// #define upUrl = "http://bin.bemfa.com/b/3BcYWMzNDRjODg3OGFiNWQwMWNlNDFkMjNiMmRjZjRmNzQ=AC1008.bin";
 
 void updateBin(); // wifiManager配网      httpUpdate OTA更新
 
